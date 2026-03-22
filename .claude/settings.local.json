@@ -62,7 +62,13 @@
       "Bash(mv code-index:*)",
       "Bash(mv code-search:*)",
       "Bash(mv code-graph:*)",
-      "Bash(mv code-analyze:*)"
+      "Bash(mv code-analyze:*)",
+      "Read(//Library/Frameworks/Python.framework/Versions/3.12/bin/**)",
+      "Bash(python3 -c \"import mcp; print\\(''mcp OK''\\)\")",
+      "Bash(python3 -c \"import click; print\\(''click OK''\\)\")",
+      "Bash(/usr/bin/python3 -c \"import mcp; print\\(''mcp OK''\\)\")",
+      "Bash(/usr/bin/python3 -c \"import click; print\\(''click OK''\\)\")",
+      "Bash(chmod +x /Users/tabi4/Desktop/workspace/projects/mine/code-intelligence-system/plugins/ci/start-mcp.sh)"
     ]
   }
 }

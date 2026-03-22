@@ -1,7 +1,6 @@
 ---
 name: search
 description: Search indexed code using semantic similarity and call graph expansion. Use when user asks to find functions, understand code, locate implementations, or search the codebase by meaning rather than exact text.
-allowed-tools: Bash
 ---
 
 # Code Search

@@ -1,7 +1,7 @@
 ---
 name: remember
 description: Save persistent business memory — business rules, incident notes, architecture decisions, or any knowledge that should survive across sessions. Use when user says "remember this", "save this rule", "note that", or shares important project knowledge.
-argument-hint: [content]
+argument-hint: "<content>"
 ---
 
 # Remember

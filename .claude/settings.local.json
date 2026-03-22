@@ -68,7 +68,8 @@
       "Bash(python3 -c \"import click; print\\(''click OK''\\)\")",
       "Bash(/usr/bin/python3 -c \"import mcp; print\\(''mcp OK''\\)\")",
       "Bash(/usr/bin/python3 -c \"import click; print\\(''click OK''\\)\")",
-      "Bash(chmod +x /Users/tabi4/Desktop/workspace/projects/mine/code-intelligence-system/plugins/ci/start-mcp.sh)"
+      "Bash(chmod +x /Users/tabi4/Desktop/workspace/projects/mine/code-intelligence-system/plugins/ci/start-mcp.sh)",
+      "Bash(claude plugin:*)"
     ]
   }
 }

@@ -1,8 +1,7 @@
 ---
 name: graph
-description: Analyze call graph relationships for a function — show callers, callees, and dependency chains. Use when user asks about function dependencies, call chains, impact analysis, or "what calls this function" / "what does this function call".
-allowed-tools: Bash
-argument-hint: [function_id] [--project project_id] [--depth N]
+description: "Analyze call graph relationships for a function — show callers, callees, and dependency chains. Use when user asks about function dependencies, call chains, impact analysis, or what calls this function / what does this function call."
+argument-hint: "<function_id> --project <project_id> [--depth N]"
 ---
 
 # Code Graph

@@ -1,7 +1,7 @@
 ---
 name: recall
 description: Search persistent business memory — retrieve saved business rules, incident notes, and project knowledge from previous sessions. Use when user asks "what do we know about", "what was the rule for", "recall", or needs context from past decisions.
-argument-hint: [query]
+argument-hint: "<query>"
 ---
 
 # Recall

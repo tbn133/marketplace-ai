@@ -2,8 +2,7 @@
 name: init
 description: Index a Python codebase using AST parsing (tree-sitter) to build call graphs and semantic search vectors. Use when user wants to index, re-index, or update the code intelligence database for a project.
 disable-model-invocation: true
-allowed-tools: Bash
-argument-hint: [path] [--project project_id] [--force]
+argument-hint: "<path> --project <project_id> [--force]"
 ---
 
 # Code Index

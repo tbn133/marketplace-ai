@@ -1,8 +1,7 @@
 ---
 name: analyze
 description: Comprehensive code analysis combining semantic search, call graph traversal, and business memory. Use when user asks for deep analysis, impact assessment, refactoring guidance, or needs to understand a feature end-to-end across the codebase.
-allowed-tools: Bash, Read, Grep, Glob
-argument-hint: [topic or function name]
+argument-hint: "<topic or function name>"
 ---
 
 # Code Analyze

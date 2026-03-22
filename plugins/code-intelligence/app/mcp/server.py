@@ -6,8 +6,9 @@ import json
 from dataclasses import asdict
 
 from mcp.server import Server
+from mcp.server.lowlevel.server import InitializationOptions
 from mcp.server.stdio import stdio_server
-from mcp.types import TextContent, Tool
+from mcp.types import ServerCapabilities, TextContent, Tool
 
 from app.container import Container, create_container
 
@@ -117,5 +118,10 @@ def create_mcp_server(container: Container | None = None) -> Server:
 
 async def run_mcp_server(container: Container | None = None):
     server = create_mcp_server(container)
+    init_options = InitializationOptions(
+        server_name="code-intelligence",
+        server_version="0.1.0",
+        capabilities=ServerCapabilities(tools={}),
+    )
     async with stdio_server() as (read_stream, write_stream):
-        await server.run(read_stream, write_stream)
+        await server.run(read_stream, write_stream, init_options)

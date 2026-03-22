@@ -52,7 +52,13 @@
       "Bash(python -m cmd.cli index ./app --project verify_refactor)",
       "Bash(python -m cmd.cli search --project verify_refactor \"call graph\")",
       "Bash(python -m cmd.cli add-memory --project verify_refactor -t note \"Refactor to marketplace complete\")",
-      "Bash(python -m cmd.cli search-memory --project verify_refactor -q \"marketplace\")"
+      "Bash(python -m cmd.cli search-memory --project verify_refactor -q \"marketplace\")",
+      "Bash(python -c \"import mcp; print\\(mcp.__version__\\)\")",
+      "Bash(pip show:*)",
+      "Bash(timeout 5 python -m cmd.cli mcp)",
+      "Bash(printf '{\"\"\"\"jsonrpc\"\"\"\":\"\"\"\"2.0\"\"\"\",\"\"\"\"id\"\"\"\":1,\"\"\"\"method\"\"\"\":\"\"\"\"initialize\"\"\"\",\"\"\"\"params\"\"\"\":{\"\"\"\"protocolVersion\"\"\"\":\"\"\"\"2024-11-05\"\"\"\",\"\"\"\"capabilities\"\"\"\":{},\"\"\"\"clientInfo\"\"\"\":{\"\"\"\"name\"\"\"\":\"\"\"\"test\"\"\"\",\"\"\"\"version\"\"\"\":\"\"\"\"1.0\"\"\"\"}}}\\\\n')",
+      "Bash(python3 -c \"import sys; print\\(sys.executable\\)\")",
+      "Bash(chmod +x /Users/tabi4/Desktop/workspace/projects/mine/code-intelligence-system/plugins/code-intelligence/start-mcp.sh)"
     ]
   }
 }

@@ -1,56 +1,56 @@
 # Code Intelligence System
 
-Claude Code plugin marketplace cho code intelligence tools.
+A Claude Code plugin marketplace for code intelligence tools.
 
 ## Plugins
 
 | Plugin | Description | Version |
 | --- | --- | --- |
-| [code-intelligence](plugins/code-intelligence/) | Index code bằng AST, call graph, semantic search, persistent memory | 0.1.0 |
+| [code-intelligence](plugins/code-intelligence/) | AST-based code indexing, call graphs, semantic search, persistent memory | 0.1.0 |
 
-## Cài đặt
+## Installation
 
-### Thêm marketplace vào Claude Code
+### Add marketplace to Claude Code
 
 ```bash
 claude plugin marketplace add github.com/tabi4/code-intelligence-system
 ```
 
-### Install plugin
+### Install a plugin
 
 ```bash
-# Từ marketplace
+# From marketplace
 claude plugin install code-intelligence@code-intelligence-system --scope project
 
-# Hoặc từ local path (khi develop)
+# From local path (development)
 claude plugin install ./plugins/code-intelligence --scope project
 
-# Gỡ bỏ
+# Uninstall
 claude plugin uninstall code-intelligence --scope project
 ```
 
-Sau khi install, Claude Code có thêm **6 skills** và **4 MCP tools** — xem chi tiết bên dưới.
+After installation, Claude Code gains **6 skills** and **4 MCP tools** — see details below.
 
 ## code-intelligence plugin
 
-### Nó làm gì
+### What it does
 
 ```text
-Source Code  →  tree-sitter AST  →  Call Graph  (NetworkX)
-                                 →  Embeddings  (FAISS)
-                                 →  Memory      (SQLite)
+Source Code  ->  tree-sitter AST  ->  Call Graph  (NetworkX)
+                                  ->  Embeddings  (FAISS)
+                                  ->  Memory      (SQLite)
 ```
 
-- **Index** Python codebases bằng tree-sitter (không dùng LLM) — trích xuất functions, classes, imports, call relationships
-- **Search** bằng semantic similarity + tự động mở rộng call graph
-- **Trace** call graphs — ai gọi function này, nó gọi gì, full dependency chain
-- **Remember** business rules, incidents, architecture decisions — persist xuyên sessions
-- **Multi-project isolation** — mọi data phân tách theo `project_id`
+- **Index** Python codebases using tree-sitter (no LLM) — extracts functions, classes, imports, call relationships
+- **Search** by semantic similarity with automatic call graph expansion
+- **Trace** call graphs — who calls a function, what it calls, full dependency chain
+- **Remember** business rules, incidents, architecture decisions — persisted across sessions
+- **Multi-project isolation** — all data partitioned by `project_id`
 
 ### Requirements
 
 - Python 3.12+
-- Không cần external services (local mode dùng NetworkX + FAISS + SQLite)
+- No external services needed (local mode uses NetworkX + FAISS + SQLite)
 
 ### Quick Start
 
@@ -58,7 +58,7 @@ Source Code  →  tree-sitter AST  →  Call Graph  (NetworkX)
 cd plugins/code-intelligence
 pip install -r requirements.txt
 
-# Index codebase
+# Index a codebase
 python -m cmd.cli index ./my-project --project myapp
 
 # Search code
@@ -67,10 +67,10 @@ python -m cmd.cli search --project myapp "authentication logic"
 # Call graph
 python -m cmd.cli graph --project myapp "myapp::auth/handler.py::verify_token"
 
-# Lưu business rule
-python -m cmd.cli add-memory --project myapp --type business_rule "Orders over $500 cần approval"
+# Save a business rule
+python -m cmd.cli add-memory --project myapp --type business_rule "Orders over $500 require approval"
 
-# Tìm memory
+# Search memory
 python -m cmd.cli search-memory --project myapp --query "approval"
 
 # Validate plugin structure
@@ -79,41 +79,41 @@ python -m cmd.cli validate-plugin
 
 ### Skills
 
-Sau khi install plugin, Claude Code có các slash commands:
+After installing the plugin, the following slash commands become available in Claude Code:
 
-| Command | Auto-trigger | Mô tả |
+| Command | Auto-trigger | Description |
 | --- | --- | --- |
-| `/code-intelligence:code-index` | Không | Index Python codebase bằng tree-sitter AST |
-| `/code-intelligence:code-search` | Khi hỏi về code | Semantic search + call graph expansion |
-| `/code-intelligence:code-graph` | Khi phân tích function | Call graph — callers/callees |
-| `/code-intelligence:remember` | Khi nói "nhớ điều này" | Lưu business rule / incident / note |
-| `/code-intelligence:recall` | Khi hỏi kiến thức cũ | Tìm memory đã lưu |
-| `/code-intelligence:code-analyze` | Khi phân tích sâu | Kết hợp search + graph + memory |
+| `/code-intelligence:code-index` | No | Index a Python codebase using tree-sitter AST |
+| `/code-intelligence:code-search` | When asking about code | Semantic search + call graph expansion |
+| `/code-intelligence:code-graph` | When analyzing functions | Call graph — callers/callees |
+| `/code-intelligence:remember` | When saying "remember this" | Save business rule / incident / note |
+| `/code-intelligence:recall` | When asking about past knowledge | Retrieve saved memories |
+| `/code-intelligence:code-analyze` | When doing deep analysis | Combines search + graph + memory |
 
 ### MCP Tools
 
-Tự động available sau khi install, Claude gọi trực tiếp:
+Automatically available after install. Claude calls them directly:
 
-| Tool | Mô tả |
+| Tool | Description |
 | --- | --- |
 | `search_code` | Vector similarity search + call graph expansion |
 | `get_call_graph` | Callers/callees traversal, configurable depth |
-| `search_memory` | Query persistent memory theo text và type |
-| `add_memory` | Lưu business rules, incidents, notes với tags |
+| `search_memory` | Query persistent memory by text and type |
+| `add_memory` | Store business rules, incidents, notes with tags |
 
-### Workflow điển hình
+### Typical Workflow
 
 ```text
-1. /code-intelligence:code-index . --project myapp    ← index 1 lần
-2. "Where is authentication handled?"                   ← auto search
-3. "What calls verify_token?"                           ← auto graph
-4. "Remember: JWT tokens expire after 1 hour"           ← auto remember
-5. "What are the auth rules?"                           ← auto recall
+1. /code-intelligence:code-index . --project myapp    <- one-time index
+2. "Where is authentication handled?"                   <- auto search
+3. "What calls verify_token?"                           <- auto graph
+4. "Remember: JWT tokens expire after 1 hour"           <- auto remember
+5. "What are the auth rules?"                           <- auto recall
 ```
 
 ### Architecture
 
-Hexagonal (Ports & Adapters) với dual storage backend:
+Hexagonal (Ports & Adapters) with dual storage backend:
 
 | Component | Local (default) | Production |
 | --- | --- | --- |
@@ -144,7 +144,7 @@ plugins/code-intelligence/
 python -m cmd.cli serve
 ```
 
-| Method | Path | Mô tả |
+| Method | Path | Description |
 | --- | --- | --- |
 | GET | `/search?project_id=X&query=Y&top_k=10` | Semantic code search |
 | GET | `/graph?project_id=X&function_id=Y&depth=2` | Call graph |
@@ -164,11 +164,11 @@ docker compose run --rm cli index /repos/myproject --project myproject
 
 ### Configuration
 
-Tất cả qua env vars (defaults trong `app/config.py`):
+All via environment variables (defaults in `app/config.py`):
 
-| Variable | Default | Mô tả |
+| Variable | Default | Description |
 | --- | --- | --- |
-| `STORAGE_BACKEND` | `local` | `local` hoặc `production` |
+| `STORAGE_BACKEND` | `local` | `local` or `production` |
 | `NEO4J_URI` | `bolt://localhost:7687` | Neo4j connection |
 | `QDRANT_URL` | `http://localhost:6333` | Qdrant connection |
 | `POSTGRES_HOST` | `localhost` | PostgreSQL host |
@@ -181,9 +181,9 @@ Tất cả qua env vars (defaults trong `app/config.py`):
 ```text
 code-intelligence-system/
 ├── .claude-plugin/
-│   └── marketplace.json               ← Marketplace manifest
+│   └── marketplace.json               <- Marketplace manifest
 ├── plugins/
-│   └── code-intelligence/             ← Plugin 1
+│   └── code-intelligence/             <- Plugin 1
 │       ├── .claude-plugin/plugin.json
 │       ├── app/
 │       ├── cmd/
@@ -196,11 +196,11 @@ code-intelligence-system/
 └── .gitignore
 ```
 
-## Thêm plugin mới
+## Adding a New Plugin
 
-1. Tạo `plugins/<tên-plugin>/` với `.claude-plugin/plugin.json`
-1. Thêm skills, MCP servers, agents tùy nhu cầu
-1. Đăng ký trong `.claude-plugin/marketplace.json`:
+1. Create `plugins/<plugin-name>/` with a `.claude-plugin/plugin.json`
+1. Add skills, MCP servers, or agents as needed
+1. Register in `.claude-plugin/marketplace.json`:
 
 ```json
 {
@@ -211,7 +211,7 @@ code-intelligence-system/
 }
 ```
 
-1. Users cập nhật: `claude plugin marketplace update`
+1. Users update with: `claude plugin marketplace update`
 
 ## License
 

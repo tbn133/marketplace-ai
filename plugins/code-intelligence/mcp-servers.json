@@ -1,7 +1,7 @@
 {
   "code-intelligence": {
-    "command": "python",
-    "args": ["-m", "cmd.cli", "mcp"],
+    "command": "bash",
+    "args": ["${CLAUDE_PLUGIN_ROOT}/start-mcp.sh"],
     "cwd": "${CLAUDE_PLUGIN_ROOT}"
   }
 }

@@ -1,0 +1,23 @@
+# Core
+fastapi>=0.110.0
+uvicorn>=0.29.0
+click>=8.1.0
+pydantic>=2.6.0
+numpy>=1.26.0
+
+# AST parsing
+tree-sitter>=0.21.0
+tree-sitter-python>=0.21.0
+
+# MCP
+mcp>=1.0.0
+
+# Local storage (always installed)
+networkx>=3.2
+faiss-cpu>=1.7.4
+
+# Production storage (optional — install when STORAGE_BACKEND=production)
+neo4j>=5.0.0
+qdrant-client>=1.8.0
+psycopg2-binary>=2.9.0
+redis>=5.0.0

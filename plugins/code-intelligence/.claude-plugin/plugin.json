@@ -1,0 +1,12 @@
+{
+  "name": "code-intelligence",
+  "version": "0.1.0",
+  "description": "AST-based code indexing, call graph analysis, semantic search, and persistent business memory for Python projects.",
+  "author": {
+    "name": "tabi4"
+  },
+  "license": "MIT",
+  "keywords": ["code-intelligence", "ast", "call-graph", "semantic-search", "memory"],
+  "skills": "./skills/",
+  "mcpServers": "./mcp-servers.json"
+}

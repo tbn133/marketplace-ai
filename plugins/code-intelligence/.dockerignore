@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+.git/
+data/
+*.pkl
+*.index
+*.sqlite
+.env*
+*.md
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/

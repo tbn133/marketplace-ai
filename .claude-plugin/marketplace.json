@@ -1,0 +1,20 @@
+{
+  "name": "code-intelligence-system",
+  "owner": {
+    "name": "tabi4"
+  },
+  "metadata": {
+    "description": "Collection of code intelligence plugins for Claude Code — AST indexing, call graphs, semantic search, persistent memory.",
+    "version": "0.1.0",
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "code-intelligence",
+      "source": "./plugins/code-intelligence",
+      "description": "AST-based code indexing, call graph analysis, semantic search, and persistent business memory for Python projects.",
+      "version": "0.1.0",
+      "keywords": ["code-intelligence", "ast", "call-graph", "semantic-search", "memory"]
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "code-intelligence": {
+    "command": "python",
+    "args": ["-m", "cmd.cli", "mcp"],
+    "cwd": "${CLAUDE_PLUGIN_ROOT}"
+  }
+}

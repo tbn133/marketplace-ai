@@ -269,7 +269,7 @@ def validate_plugin():
     click.echo("\nValidation OK. Ready for distribution.")
     click.echo(f"\nInstall methods:")
     click.echo(f"  # From GitHub (after pushing)")
-    click.echo(f"  claude plugin install code-intelligence")
+    click.echo(f"  claude plugin install ci")
     click.echo(f"  # From local path (development)")
     click.echo(f"  claude plugin install {PLUGIN_ROOT} --scope project")
 

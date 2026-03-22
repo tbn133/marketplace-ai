@@ -58,7 +58,11 @@
       "Bash(timeout 5 python -m cmd.cli mcp)",
       "Bash(printf '{\"\"\"\"jsonrpc\"\"\"\":\"\"\"\"2.0\"\"\"\",\"\"\"\"id\"\"\"\":1,\"\"\"\"method\"\"\"\":\"\"\"\"initialize\"\"\"\",\"\"\"\"params\"\"\"\":{\"\"\"\"protocolVersion\"\"\"\":\"\"\"\"2024-11-05\"\"\"\",\"\"\"\"capabilities\"\"\"\":{},\"\"\"\"clientInfo\"\"\"\":{\"\"\"\"name\"\"\"\":\"\"\"\"test\"\"\"\",\"\"\"\"version\"\"\"\":\"\"\"\"1.0\"\"\"\"}}}\\\\n')",
       "Bash(python3 -c \"import sys; print\\(sys.executable\\)\")",
-      "Bash(chmod +x /Users/tabi4/Desktop/workspace/projects/mine/code-intelligence-system/plugins/code-intelligence/start-mcp.sh)"
+      "Bash(chmod +x /Users/tabi4/Desktop/workspace/projects/mine/code-intelligence-system/plugins/code-intelligence/start-mcp.sh)",
+      "Bash(mv code-index:*)",
+      "Bash(mv code-search:*)",
+      "Bash(mv code-graph:*)",
+      "Bash(mv code-analyze:*)"
     ]
   }
 }

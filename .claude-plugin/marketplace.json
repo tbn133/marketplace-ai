@@ -10,8 +10,8 @@
   },
   "plugins": [
     {
-      "name": "code-intelligence",
-      "source": "./plugins/code-intelligence",
+      "name": "ci",
+      "source": "./plugins/ci",
       "description": "AST-based code indexing, call graph analysis, semantic search, and persistent business memory for Python projects.",
       "version": "0.1.0",
       "keywords": ["code-intelligence", "ast", "call-graph", "semantic-search", "memory"]

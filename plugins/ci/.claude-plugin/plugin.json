@@ -1,5 +1,5 @@
 {
-  "name": "code-intelligence",
+  "name": "ci",
   "version": "0.1.0",
   "description": "AST-based code indexing, call graph analysis, semantic search, and persistent business memory for Python projects.",
   "author": {

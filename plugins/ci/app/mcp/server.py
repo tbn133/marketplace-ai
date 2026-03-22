@@ -15,7 +15,7 @@ from app.container import Container, create_container
 
 def create_mcp_server(container: Container | None = None) -> Server:
     c = container or create_container()
-    mcp_server = Server("code-intelligence")
+    mcp_server = Server("ci")
 
     @mcp_server.list_tools()
     async def list_tools() -> list[Tool]:
@@ -119,7 +119,7 @@ def create_mcp_server(container: Container | None = None) -> Server:
 async def run_mcp_server(container: Container | None = None):
     server = create_mcp_server(container)
     init_options = InitializationOptions(
-        server_name="code-intelligence",
+        server_name="ci",
         server_version="0.1.0",
         capabilities=ServerCapabilities(tools={}),
     )

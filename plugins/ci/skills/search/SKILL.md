@@ -1,5 +1,5 @@
 ---
-name: code-search
+name: search
 description: Search indexed code using semantic similarity and call graph expansion. Use when user asks to find functions, understand code, locate implementations, or search the codebase by meaning rather than exact text.
 allowed-tools: Bash
 ---
@@ -17,7 +17,7 @@ Search indexed code using semantic vectors and call graph expansion. Returns mat
 
 ## How to search
 
-Use the MCP tool `search_code` provided by the `code-intelligence` server:
+Use the MCP tool `search_code` provided by the `ci` server:
 
 - **project_id** (required): The project identifier used during indexing
 - **query** (required): Natural language description of what to find
@@ -33,7 +33,7 @@ Use the MCP tool `search_code` provided by the `code-intelligence` server:
    - List matched functions with file paths and line numbers
    - Highlight the most relevant matches
    - Show related functions (callers/callees) if present
-4. If no results found, suggest the user run `/code-index` first
+4. If no results found, suggest the user run `/ci:init` first
 
 ## Output format
 

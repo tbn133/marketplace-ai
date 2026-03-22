@@ -1,5 +1,5 @@
 ---
-name: code-analyze
+name: analyze
 description: Comprehensive code analysis combining semantic search, call graph traversal, and business memory. Use when user asks for deep analysis, impact assessment, refactoring guidance, or needs to understand a feature end-to-end across the codebase.
 allowed-tools: Bash, Read, Grep, Glob
 argument-hint: [topic or function name]
@@ -77,4 +77,4 @@ Present a structured analysis:
 - This skill orchestrates multiple MCP tools — it may take several steps
 - Start broad (search) then narrow (graph + read) for efficiency
 - Always check memory first — past incidents may be critical context
-- If the codebase isn't indexed yet, suggest `/code-index` first
+- If the codebase isn't indexed yet, suggest `/ci:init` first

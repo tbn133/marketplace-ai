@@ -1,5 +1,5 @@
 ---
-name: code-graph
+name: graph
 description: Analyze call graph relationships for a function — show callers, callees, and dependency chains. Use when user asks about function dependencies, call chains, impact analysis, or "what calls this function" / "what does this function call".
 allowed-tools: Bash
 argument-hint: [function_id] [--project project_id] [--depth N]
@@ -19,7 +19,7 @@ Retrieve and visualize the call graph for a specific function. Shows who calls i
 
 ## How to use
 
-Use the MCP tool `get_call_graph` provided by the `code-intelligence` server:
+Use the MCP tool `get_call_graph` provided by the `ci` server:
 
 - **project_id** (required): The project identifier
 - **function_id** (required): Function ID in format `{project_id}::{file_path}::{ClassName.}func_name`
@@ -56,5 +56,5 @@ Examples:
 
 ## Notes
 
-- The codebase must be indexed first — suggest `/code-index` if no data found
+- The codebase must be indexed first — suggest `/ci:init` if no data found
 - Deep graphs (depth > 3) may return large results; suggest starting with depth 2

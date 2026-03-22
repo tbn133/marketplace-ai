@@ -1,4 +1,4 @@
-# code-intelligence
+# ci
 
 AST-based code indexing, call graph analysis, semantic search, and persistent business memory for Python projects. Works standalone (CLI, REST API) or as a Claude Code plugin.
 
@@ -25,12 +25,12 @@ python -m cmd.cli search-memory --project myapp --query "approval"
 
 | Command | Description |
 | --- | --- |
-| `/code-intelligence:code-index` | Index a Python codebase (tree-sitter AST) |
-| `/code-intelligence:code-search` | Semantic code search with graph expansion |
-| `/code-intelligence:code-graph` | Call graph analysis for functions |
-| `/code-intelligence:remember` | Save persistent business memory |
-| `/code-intelligence:recall` | Retrieve saved memories |
-| `/code-intelligence:code-analyze` | Deep analysis combining all tools |
+| `/ci:init` | Index a Python codebase (tree-sitter AST) |
+| `/ci:search` | Semantic code search with graph expansion |
+| `/ci:graph` | Call graph analysis for functions |
+| `/ci:remember` | Save persistent business memory |
+| `/ci:recall` | Retrieve saved memories |
+| `/ci:analyze` | Deep analysis combining all tools |
 
 ## MCP Tools
 

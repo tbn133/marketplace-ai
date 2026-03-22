@@ -6,7 +6,7 @@ A Claude Code plugin marketplace for code intelligence tools.
 
 | Plugin | Description | Version |
 | --- | --- | --- |
-| [code-intelligence](plugins/code-intelligence/) | AST-based code indexing, call graphs, semantic search, persistent memory | 0.1.0 |
+| [ci](plugins/ci/) | AST-based code indexing, call graphs, semantic search, persistent memory | 0.1.0 |
 
 ## Installation
 
@@ -20,18 +20,18 @@ claude plugin marketplace add github.com/tabi4/code-intelligence-system
 
 ```bash
 # From marketplace
-claude plugin install code-intelligence@code-intelligence-system --scope project
+claude plugin install ci@code-intelligence-system --scope project
 
 # From local path (development)
-claude plugin install ./plugins/code-intelligence --scope project
+claude plugin install ./plugins/ci --scope project
 
 # Uninstall
-claude plugin uninstall code-intelligence --scope project
+claude plugin uninstall ci --scope project
 ```
 
 After installation, Claude Code gains **6 skills** and **4 MCP tools** — see details below.
 
-## code-intelligence plugin
+## ci plugin
 
 ### What it does
 
@@ -55,7 +55,7 @@ Source Code  ->  tree-sitter AST  ->  Call Graph  (NetworkX)
 ### Quick Start
 
 ```bash
-cd plugins/code-intelligence
+cd plugins/ci
 pip install -r requirements.txt
 
 # Index a codebase
@@ -83,12 +83,12 @@ After installing the plugin, the following slash commands become available in Cl
 
 | Command | Auto-trigger | Description |
 | --- | --- | --- |
-| `/code-intelligence:code-index` | No | Index a Python codebase using tree-sitter AST |
-| `/code-intelligence:code-search` | When asking about code | Semantic search + call graph expansion |
-| `/code-intelligence:code-graph` | When analyzing functions | Call graph — callers/callees |
-| `/code-intelligence:remember` | When saying "remember this" | Save business rule / incident / note |
-| `/code-intelligence:recall` | When asking about past knowledge | Retrieve saved memories |
-| `/code-intelligence:code-analyze` | When doing deep analysis | Combines search + graph + memory |
+| `/ci:init` | No | Index a Python codebase using tree-sitter AST |
+| `/ci:search` | When asking about code | Semantic search + call graph expansion |
+| `/ci:graph` | When analyzing functions | Call graph — callers/callees |
+| `/ci:remember` | When saying "remember this" | Save business rule / incident / note |
+| `/ci:recall` | When asking about past knowledge | Retrieve saved memories |
+| `/ci:analyze` | When doing deep analysis | Combines search + graph + memory |
 
 ### MCP Tools
 
@@ -104,11 +104,11 @@ Automatically available after install. Claude calls them directly:
 ### Typical Workflow
 
 ```text
-1. /code-intelligence:code-index . --project myapp    <- one-time index
-2. "Where is authentication handled?"                   <- auto search
-3. "What calls verify_token?"                           <- auto graph
-4. "Remember: JWT tokens expire after 1 hour"           <- auto remember
-5. "What are the auth rules?"                           <- auto recall
+1. /ci:init . --project myapp              <- one-time index
+2. "Where is authentication handled?"       <- auto search
+3. "What calls verify_token?"               <- auto graph
+4. "Remember: JWT tokens expire after 1 hour" <- auto remember
+5. "What are the auth rules?"               <- auto recall
 ```
 
 ### Architecture
@@ -123,7 +123,7 @@ Hexagonal (Ports & Adapters) with dual storage backend:
 | Cache | In-memory dict | Redis |
 
 ```text
-plugins/code-intelligence/
+plugins/ci/
   app/
     domain/          # Models (FunctionNode, Memory...) + port interfaces
     services/        # IndexingService, SearchService, MemoryService
@@ -157,7 +157,7 @@ python -m cmd.cli serve
 ### Docker (Production)
 
 ```bash
-cd plugins/code-intelligence
+cd plugins/ci
 docker compose up -d
 docker compose run --rm cli index /repos/myproject --project myproject
 ```
@@ -183,7 +183,7 @@ code-intelligence-system/
 ├── .claude-plugin/
 │   └── marketplace.json               <- Marketplace manifest
 ├── plugins/
-│   └── code-intelligence/             <- Plugin 1
+│   └── ci/                            <- Plugin 1
 │       ├── .claude-plugin/plugin.json
 │       ├── app/
 │       ├── cmd/
@@ -205,7 +205,7 @@ code-intelligence-system/
 ```json
 {
   "plugins": [
-    { "name": "code-intelligence", "source": "./plugins/code-intelligence" },
+    { "name": "ci", "source": "./plugins/ci" },
     { "name": "new-plugin", "source": "./plugins/new-plugin", "description": "..." }
   ]
 }

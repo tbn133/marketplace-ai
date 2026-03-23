@@ -8,14 +8,26 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Callable
 
 from app.domain.models import FileRecord, FunctionNode, ProjectInfo
 from app.domain.ports import EmbeddingPort, GraphStorePort, VectorStorePort
 from app.indexer.extractor import extract_symbols
 from app.indexer.graph_builder import build_graph, resolve_calls
 from app.indexer.parser import CodeParser
+
+logger = logging.getLogger(__name__)
+
+IGNORE_DIRS = {
+    ".git", "__pycache__", "node_modules",
+    ".venv", "venv", "env",
+    ".tox", ".nox", ".mypy_cache", ".ruff_cache", ".pytest_cache", ".pytype",
+    "build", "dist", ".eggs", "site-packages",
+    ".idea", ".vscode",
+}
 
 
 class IndexingService:
@@ -38,6 +50,7 @@ class IndexingService:
         directory: str | Path,
         project_id: str,
         force: bool = False,
+        on_progress: Callable[[str, str], None] | None = None,
     ) -> ProjectInfo:
         root = Path(directory).resolve()
         if not root.is_dir():
@@ -47,41 +60,61 @@ class IndexingService:
         total_functions = 0
         total_classes = 0
         indexed_files = 0
+        skipped_files = 0
+        error_files: list[tuple[str, str]] = []
         all_function_nodes: list[FunctionNode] = []
 
         for file_path in files:
             rel_path = str(file_path.relative_to(root))
-            file_hash = self._compute_hash(file_path)
+
+            try:
+                file_hash = self._compute_hash(file_path)
+            except OSError as e:
+                error_files.append((rel_path, str(e)))
+                if on_progress:
+                    on_progress("error", rel_path)
+                continue
 
             if not force and self._is_unchanged(project_id, rel_path, file_hash):
+                skipped_files += 1
+                if on_progress:
+                    on_progress("skip", rel_path)
                 continue
 
-            self._graph_store.remove_file_nodes(project_id, rel_path)
-            self._vector_store.remove_by_file(project_id, rel_path)
+            try:
+                self._graph_store.remove_file_nodes(project_id, rel_path)
+                self._vector_store.remove_by_file(project_id, rel_path)
 
-            result = self._parser.parse_file(file_path)
-            if result is None:
-                continue
-            tree, source, language = result
+                result = self._parser.parse_file(file_path)
+                if result is None:
+                    continue
+                tree, source, language, rules = result
 
-            extraction = extract_symbols(tree, source)
-            func_nodes = build_graph(project_id, rel_path, extraction, self._graph_store)
-            all_function_nodes.extend(func_nodes)
+                extraction = extract_symbols(tree, source, rules)
+                func_nodes = build_graph(project_id, rel_path, extraction, self._graph_store)
+                all_function_nodes.extend(func_nodes)
 
-            for fn in func_nodes:
-                text = f"{fn.name} {fn.signature} {fn.file}"
-                vec = self._embedding.generate(text)
-                self._vector_store.add(
-                    project_id=project_id,
-                    node_id=fn.id,
-                    embedding=vec,
-                    metadata={"file": rel_path, "name": fn.name, "signature": fn.signature},
-                )
+                for fn in func_nodes:
+                    text = f"{fn.name} {fn.signature} {fn.file}"
+                    vec = self._embedding.generate(text)
+                    self._vector_store.add(
+                        project_id=project_id,
+                        node_id=fn.id,
+                        embedding=vec,
+                        metadata={"file": rel_path, "name": fn.name, "signature": fn.signature},
+                    )
 
-            total_functions += len(extraction.functions)
-            total_classes += len(extraction.classes)
-            indexed_files += 1
-            self._update_hash(project_id, rel_path, file_hash)
+                total_functions += len(extraction.functions)
+                total_classes += len(extraction.classes)
+                indexed_files += 1
+                self._update_hash(project_id, rel_path, file_hash)
+                if on_progress:
+                    on_progress("index", rel_path)
+            except Exception as e:
+                error_files.append((rel_path, str(e)))
+                logger.warning("Failed to index %s: %s", rel_path, e)
+                if on_progress:
+                    on_progress("error", rel_path)
 
         if all_function_nodes:
             resolve_calls(project_id, all_function_nodes, self._graph_store)
@@ -96,14 +129,28 @@ class IndexingService:
             total_files=indexed_files,
             total_functions=total_functions,
             total_classes=total_classes,
+            skipped_files=skipped_files,
+            error_files=error_files,
         )
 
+    def get_project_status(self, project_id: str) -> dict:
+        self._load_hashes(project_id)
+        hashes = self._file_hashes.get(project_id, {})
+        functions = self._graph_store.get_all_functions(project_id)
+        unique_files = {f["file"] for f in functions}
+        return {
+            "project_id": project_id,
+            "indexed_files": len(hashes),
+            "total_functions": len(functions),
+            "files": sorted(unique_files),
+            "has_data": len(hashes) > 0,
+        }
+
     def _discover_files(self, root: Path) -> list[Path]:
-        ignore_dirs = {".git", "__pycache__", "node_modules", ".venv", "venv", ".tox", ".mypy_cache"}
         files = []
         for path in root.rglob("*"):
             if path.is_file() and CodeParser.is_supported(path):
-                if not any(part in ignore_dirs for part in path.parts):
+                if not any(part in IGNORE_DIRS for part in path.parts):
                     files.append(path)
         return sorted(files)
 

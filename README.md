@@ -41,7 +41,8 @@ Source Code  ->  tree-sitter AST  ->  Call Graph  (NetworkX)
                                   ->  Memory      (SQLite)
 ```
 
-- **Index** Python codebases using tree-sitter (no LLM) — extracts functions, classes, imports, call relationships
+- **Index** codebases using tree-sitter (no LLM) — extracts functions, classes, imports, call relationships
+- **Multi-language** — Python, TypeScript, JavaScript, Go, Rust, Java, C, C++
 - **Search** by semantic similarity with automatic call graph expansion
 - **Trace** call graphs — who calls a function, what it calls, full dependency chain
 - **Remember** business rules, incidents, architecture decisions — persisted across sessions
@@ -83,7 +84,7 @@ After installing the plugin, the following slash commands become available in Cl
 
 | Command | Auto-trigger | Description |
 | --- | --- | --- |
-| `/ci:init` | No | Index a Python codebase using tree-sitter AST |
+| `/ci:init` | No | Index a codebase using tree-sitter AST (multi-language) |
 | `/ci:search` | When asking about code | Semantic search + call graph expansion |
 | `/ci:graph` | When analyzing functions | Call graph — callers/callees |
 | `/ci:remember` | When saying "remember this" | Save business rule / incident / note |

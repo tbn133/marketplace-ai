@@ -21,20 +21,56 @@ def cli():
 
 
 @cli.command()
-@click.argument("path", type=click.Path(exists=True))
+@click.argument("path", type=click.Path(exists=True), required=False, default=None)
 @click.option("--project", "-p", required=True, help="Project identifier")
 @click.option("--force", "-f", is_flag=True, help="Force re-index all files")
-def index(path: str, project: str, force: bool):
-    """Index a source code directory.
+@click.option("--verbose", "-v", is_flag=True, help="Show per-file progress")
+@click.option("--status", "-s", is_flag=True, help="Show what is already indexed, do not index")
+def index(path: str | None, project: str, force: bool, verbose: bool, status: bool):
+    """Index a source code directory, or check what is already indexed.
 
-    Example: python -m cmd.cli index ./repo --project hotel
+    \b
+    Examples:
+      python -m cmd.cli index ./repo --project hotel
+      python -m cmd.cli index ./repo --project hotel -v
+      python -m cmd.cli index --project hotel --status
     """
     container = create_container()
+
+    if status:
+        info = container.indexing_service.get_project_status(project)
+        if not info["has_data"]:
+            click.echo(f"Project '{project}' has not been indexed yet.")
+            return
+        click.echo(f"Project: {project}")
+        click.echo(f"  Files:     {info['indexed_files']}")
+        click.echo(f"  Functions: {info['total_functions']}")
+        click.echo(f"\nIndexed files:")
+        for f in info["files"]:
+            click.echo(f"  {f}")
+        return
+
+    if path is None:
+        raise click.UsageError("PATH is required when not using --status.")
+
     click.echo(f"Indexing '{path}' for project '{project}'...")
-    info = container.indexing_service.index_directory(path, project_id=project, force=force)
-    click.echo(f"Done! Indexed {info.total_files} files:")
+
+    def on_progress(action: str, file_path: str) -> None:
+        if verbose:
+            symbol = {"index": "+", "skip": "=", "error": "!"}[action]
+            click.echo(f"  [{symbol}] {file_path}")
+
+    info = container.indexing_service.index_directory(
+        path, project_id=project, force=force, on_progress=on_progress,
+    )
+
+    click.echo(f"\nDone! Indexed {info.total_files} files (skipped {info.skipped_files} unchanged):")
     click.echo(f"  Functions: {info.total_functions}")
     click.echo(f"  Classes:   {info.total_classes}")
+    if info.error_files:
+        click.echo(f"  Errors:    {len(info.error_files)}")
+        for fp, err in info.error_files[:10]:
+            click.echo(f"    ! {fp}: {err}")
 
 
 @cli.command()

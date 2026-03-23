@@ -64,6 +64,8 @@ class ProjectInfo:
     total_files: int = 0
     total_functions: int = 0
     total_classes: int = 0
+    skipped_files: int = 0
+    error_files: list[tuple[str, str]] = field(default_factory=list)
 
 
 @dataclass

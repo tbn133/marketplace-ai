@@ -86,7 +86,7 @@ The `Container` in `app/container.py` is the composition root — it reads `STOR
 
 ### Key Constraints
 
-- **AST-only parsing**: Never use LLM for code parsing. All extraction is via tree-sitter.
+- **AST-only parsing**: Never use LLM for code parsing. All extraction is via tree-sitter. Supports Python, TypeScript, JavaScript, Go, Rust, Java, C, C++.
 - **Project isolation**: `project_id` is required on every data operation.
 - **Embedding is a mock**: `HashEmbeddingService` uses deterministic hash-based vectors. Designed to be swapped for a real model (e.g., `bge-small`).
 

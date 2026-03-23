@@ -25,7 +25,7 @@ python -m cmd.cli search-memory --project myapp --query "approval"
 
 | Command | Description |
 | --- | --- |
-| `/ci:init` | Index a Python codebase (tree-sitter AST) |
+| `/ci:init` | Index a codebase (tree-sitter AST, multi-language) |
 | `/ci:search` | Semantic code search with graph expansion |
 | `/ci:graph` | Call graph analysis for functions |
 | `/ci:remember` | Save persistent business memory |
@@ -50,7 +50,7 @@ Hexagonal (Ports & Adapters) with dual storage backend:
 | Memory | SQLite | PostgreSQL |
 | Cache | In-memory dict | Redis |
 
-```
+```text
 app/
   domain/          # Models + port interfaces
   services/        # IndexingService, SearchService, MemoryService

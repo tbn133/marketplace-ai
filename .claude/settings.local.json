@@ -69,7 +69,20 @@
       "Bash(/usr/bin/python3 -c \"import mcp; print\\(''mcp OK''\\)\")",
       "Bash(/usr/bin/python3 -c \"import click; print\\(''click OK''\\)\")",
       "Bash(chmod +x /Users/tabi4/Desktop/workspace/projects/mine/code-intelligence-system/plugins/ci/start-mcp.sh)",
-      "Bash(claude plugin:*)"
+      "Bash(claude plugin:*)",
+      "Bash(.venv/bin/python -m cmd.cli status)",
+      "Bash(../../.venv/bin/python -m cmd.cli status)",
+      "Bash(../../.venv/bin/python -m cmd.cli index ./app --project ci-self -v)",
+      "Bash(../../.venv/bin/python -m cmd.cli list --project ci-self --files)",
+      "Bash(../../.venv/bin/python -m cmd.cli list --project ci-self --functions)",
+      "Bash(../../.venv/bin/python -m cmd.cli index --project ci-self --status)",
+      "Bash(.venv/bin/pip install:*)",
+      "Bash(../../.venv/bin/python -c \"from app.indexer.languages import get_supported_extensions; print\\(sorted\\(get_supported_extensions\\(\\)\\)\\)\")",
+      "Bash(rm -f data/graph_ci-self.pkl data/faiss_ci-self.* data/hashes_ci-self.json)",
+      "Bash(../../.venv/bin/python -m cmd.cli index ./app --project ci-self)",
+      "Bash(find /Users/tabi4/Desktop/workspace/projects/mine/extensions -maxdepth 3 -name *.ts -o -name *.js -o -name *.go -o -name *.rs -o -name *.java)",
+      "Bash(../../.venv/bin/python -m cmd.cli index /Users/tabi4/Desktop/workspace/projects/mine/extensions/ai-flow --project ai-flow -v)",
+      "Bash(../../.venv/bin/python -m cmd.cli index --project ai-flow --status)"
     ]
   }
 }

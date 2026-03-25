@@ -121,6 +121,34 @@ def _walk(
     rules: LangRules,
     parent_class: str | None,
 ) -> None:
+    # -- Variable-assigned functions: const Foo = () => {} / const Foo = function() {} --
+    if node.type == "variable_declarator":
+        value_node = node.child_by_field_name("value")
+        if value_node and value_node.type in rules.func_types:
+            name_node = node.child_by_field_name("name")
+            if name_node:
+                name = _node_text(name_node, source)
+                calls = _extract_calls(value_node, source, rules)
+                calls = [c for c in calls if c != name]
+                sig = _extract_signature(value_node, source, rules)
+                # Replace placeholder "?" with actual variable name
+                sig = sig.replace("?(", f"{name}(", 1) if "?(" in sig else sig
+                func = ExtractedFunction(
+                    name=name,
+                    start_line=node.start_point[0] + 1,
+                    end_line=node.end_point[0] + 1,
+                    signature=sig,
+                    calls=calls,
+                    parent_class=parent_class,
+                )
+                result.functions.append(func)
+                if parent_class:
+                    for cls in result.classes:
+                        if cls.name == parent_class:
+                            cls.methods.append(name)
+                            break
+            return
+
     # -- Functions --
     if node.type in rules.func_types:
         name = _extract_func_name(node, source, rules)

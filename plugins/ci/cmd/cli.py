@@ -113,6 +113,50 @@ def graph(project: str, function_id: str, depth: int):
     click.echo(json.dumps(result, indent=2))
 
 
+@cli.command()
+@click.option("--project", "-p", required=True, help="Project identifier")
+@click.option("--debounce", "-d", default=2.0, type=float, help="Debounce seconds (default: 2)")
+def watch(project: str, debounce: float):
+    """Watch a project directory and auto re-index on file changes.
+
+    The project must have been indexed at least once so the root path is known.
+
+    \b
+    Examples:
+      python -m cmd.cli watch --project hotel
+      python -m cmd.cli watch --project hotel --debounce 5
+    """
+    container = create_container()
+
+    root = container.indexing_service.get_project_root(project)
+    if root is None:
+        click.echo(f"Error: Project '{project}' has no registered root path.", err=True)
+        click.echo("Run 'index' first to register the project.", err=True)
+        raise SystemExit(1)
+
+    click.echo(f"Watching '{root}' for project '{project}' (debounce={debounce}s)")
+    click.echo("Press Ctrl+C to stop.\n")
+
+    def on_reindex(project_id: str, indexed: int, deleted: int) -> None:
+        parts = []
+        if indexed:
+            parts.append(f"{indexed} file(s) re-indexed")
+        if deleted:
+            parts.append(f"{deleted} file(s) removed")
+        if parts:
+            click.echo(f"  [{project_id}] {', '.join(parts)}")
+
+    try:
+        container.watcher_service.watch(
+            project_id=project,
+            root=root,
+            debounce_seconds=debounce,
+            on_reindex=on_reindex,
+        )
+    except KeyboardInterrupt:
+        click.echo("\nStopped.")
+
+
 @cli.command("add-memory")
 @click.option("--project", "-p", required=True)
 @click.option("--type", "-t", "mem_type", required=True, help="Memory type: business_rule, incident, note")

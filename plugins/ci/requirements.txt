@@ -15,9 +15,13 @@ tree-sitter-rust>=0.23.0
 tree-sitter-java>=0.21.0
 tree-sitter-c>=0.21.0
 tree-sitter-cpp>=0.22.0
+tree-sitter-php>=0.22.0
 
 # MCP
 mcp>=1.0.0
+
+# File watching
+watchdog>=4.0.0
 
 # Local storage (always installed)
 networkx>=3.2

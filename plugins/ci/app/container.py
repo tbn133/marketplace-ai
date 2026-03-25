@@ -20,6 +20,7 @@ from app.infrastructure.logging import get_logger, setup_logging
 from app.services.indexing_service import IndexingService
 from app.services.memory_service import MemoryService
 from app.services.search_service import SearchService
+from app.services.watcher_service import WatcherService
 
 logger = get_logger("container")
 
@@ -41,6 +42,7 @@ class Container:
     indexing_service: IndexingService
     search_service: SearchService
     memory_service: MemoryService
+    watcher_service: WatcherService
 
 
 def _create_local(config: AppConfig) -> tuple[GraphStorePort, VectorStorePort, MemoryStorePort, CachePort, EmbeddingPort]:
@@ -122,6 +124,7 @@ def create_container(config: AppConfig | None = None) -> Container:
         cache=cache,
     )
     memory_service = MemoryService(memory_store=memory_store)
+    watcher_service = WatcherService(indexing_service=indexing_service)
 
     return Container(
         config=config,
@@ -133,4 +136,5 @@ def create_container(config: AppConfig | None = None) -> Container:
         indexing_service=indexing_service,
         search_service=search_service,
         memory_service=memory_service,
+        watcher_service=watcher_service,
     )

@@ -19,6 +19,18 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"${CLAUDE_PLUGIN_ROOT}\" && python3 hooks/post_tool_reindex.py",
+            "timeout": 30000
+          }
+        ]
+      }
     ]
   }
 }

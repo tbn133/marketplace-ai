@@ -69,6 +69,13 @@ class ProjectInfo:
 
 
 @dataclass
+class ProjectRegistry:
+    project_id: str
+    root_path: str
+    registered_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+
+@dataclass
 class SearchResult:
     functions: list[dict] = field(default_factory=list)
     related: list[dict] = field(default_factory=list)

@@ -57,7 +57,7 @@ PYTHON_RULES = LangRules(
 )
 
 TYPESCRIPT_RULES = LangRules(
-    func_types=frozenset({"function_declaration", "method_definition", "arrow_function"}),
+    func_types=frozenset({"function_declaration", "function_expression", "method_definition", "arrow_function"}),
     class_types=frozenset({"class_declaration"}),
     import_types=frozenset({"import_statement"}),
     call_types=frozenset({"call_expression"}),
@@ -70,7 +70,7 @@ TYPESCRIPT_RULES = LangRules(
 )
 
 JAVASCRIPT_RULES = LangRules(
-    func_types=frozenset({"function_declaration", "method_definition", "arrow_function"}),
+    func_types=frozenset({"function_declaration", "function_expression", "method_definition", "arrow_function"}),
     class_types=frozenset({"class_declaration"}),
     import_types=frozenset({"import_statement"}),
     call_types=frozenset({"call_expression"}),
@@ -134,6 +134,19 @@ CPP_RULES = LangRules(
     class_body_type="field_declaration_list",
 )
 
+PHP_RULES = LangRules(
+    func_types=frozenset({"function_definition", "method_declaration"}),
+    class_types=frozenset({"class_declaration", "interface_declaration", "trait_declaration"}),
+    import_types=frozenset({"namespace_use_declaration"}),
+    call_types=frozenset({"function_call_expression", "member_call_expression", "scoped_call_expression"}),
+    name_field="name",
+    params_field="formal_parameters",
+    return_field="return_type",
+    func_keyword="function",
+    import_module_field="",
+    class_body_type="declaration_list",
+)
+
 C_RULES = LangRules(
     func_types=frozenset({"function_definition"}),
     class_types=frozenset({"struct_specifier"}),
@@ -186,6 +199,7 @@ def _init_registry() -> None:
     _try_register("tree_sitter_java", "language", JAVA_RULES, (".java",))
     _try_register("tree_sitter_cpp", "language", CPP_RULES, (".cpp", ".cc", ".cxx", ".hpp", ".hxx"))
     _try_register("tree_sitter_c", "language", C_RULES, (".c", ".h"))
+    _try_register("tree_sitter_php", "language_php", PHP_RULES, (".php",))
 
 
 def get_registry() -> dict[str, LangSpec]:

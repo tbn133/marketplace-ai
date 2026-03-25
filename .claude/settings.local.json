@@ -82,7 +82,25 @@
       "Bash(../../.venv/bin/python -m cmd.cli index ./app --project ci-self)",
       "Bash(find /Users/tabi4/Desktop/workspace/projects/mine/extensions -maxdepth 3 -name *.ts -o -name *.js -o -name *.go -o -name *.rs -o -name *.java)",
       "Bash(../../.venv/bin/python -m cmd.cli index /Users/tabi4/Desktop/workspace/projects/mine/extensions/ai-flow --project ai-flow -v)",
-      "Bash(../../.venv/bin/python -m cmd.cli index --project ai-flow --status)"
+      "Bash(../../.venv/bin/python -m cmd.cli index --project ai-flow --status)",
+      "Bash(../../.venv/bin/python -c \"import tree_sitter_php; print\\(dir\\(tree_sitter_php\\)\\)\")",
+      "Bash(../../.venv/bin/python -c \"from app.indexer.languages import get_supported_extensions; print\\(''.php'' in get_supported_extensions\\(\\), sorted\\(get_supported_extensions\\(\\)\\)\\)\")",
+      "Bash(find /Users/tabi4/Desktop/workspace/projects/mine -maxdepth 4 -name *.php -not -path */vendor/* -not -path */node_modules/*)",
+      "Bash(find /Users/tabi4/Desktop/workspace -maxdepth 6 -name *.php)",
+      "Bash(find /Users/tabi4/Desktop/workspace -maxdepth 8 -name *.php -not -path */vendor/* -not -path */node_modules/*)",
+      "Bash(../../.venv/bin/python -c \":*)",
+      "Bash(find /Users/tabi4/Desktop/workspace/projects -name *.tsx -type f)",
+      "Bash(find /Users/tabi4/Desktop/workspace/projects -name *.jsx -type f)",
+      "Bash(find /Users/tabi4/Desktop/workspace/projects -name *.tsx -not -path */node_modules/* -not -path */.next/* -not -path */dist/* -type f)",
+      "Bash(grep -rl 'export const.*=.*=>' /Users/tabi4/Desktop/workspace/projects/tabi_system/apw/github/ai_workspaces/tabiyory_admin_front/src --include=*.tsx)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:github.com)",
+      "Bash(python:*)",
+      "WebFetch(domain:www.eesel.ai)",
+      "WebFetch(domain:smartscope.blog)",
+      "Bash(chmod:*)",
+      "Bash(python3 hooks/post_tool_reindex.py)"
     ]
   }
 }

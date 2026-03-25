@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
 
-from app.domain.models import FileRecord, FunctionNode, ProjectInfo
+from app.domain.models import FileRecord, FunctionNode, ProjectInfo, ProjectRegistry
 from app.domain.ports import EmbeddingPort, GraphStorePort, VectorStorePort
 from app.indexer.extractor import extract_symbols
 from app.indexer.graph_builder import build_graph, resolve_calls
@@ -22,7 +22,7 @@ from app.indexer.parser import CodeParser
 logger = logging.getLogger(__name__)
 
 IGNORE_DIRS = {
-    ".git", "__pycache__", "node_modules",
+    ".git", ".claude", "__pycache__", "node_modules",
     ".venv", "venv", "env",
     ".tox", ".nox", ".mypy_cache", ".ruff_cache", ".pytest_cache", ".pytype",
     "build", "dist", ".eggs", "site-packages",
@@ -44,6 +44,8 @@ class IndexingService:
         self._parser = CodeParser()
         self._data_dir = data_dir
         self._file_hashes: dict[str, dict[str, FileRecord]] = {}
+        self._registry: dict[str, ProjectRegistry] = {}
+        self._load_registry()
 
     def index_directory(
         self,
@@ -122,6 +124,7 @@ class IndexingService:
         self._graph_store.save(project_id)
         self._vector_store.save(project_id)
         self._save_hashes(project_id)
+        self._register_project(project_id, str(root))
 
         return ProjectInfo(
             project_id=project_id,
@@ -198,3 +201,124 @@ class IndexingService:
             file_hash=file_hash,
             indexed_at=datetime.now(timezone.utc).isoformat(),
         )
+
+    # ── Incremental file-level operations ──────────────────────────
+
+    def index_files(
+        self,
+        file_paths: list[Path],
+        project_id: str,
+        root: Path,
+    ) -> ProjectInfo:
+        """Re-index specific files (incremental). Used by watcher."""
+        total_functions = 0
+        total_classes = 0
+        indexed_files = 0
+        error_files: list[tuple[str, str]] = []
+        all_function_nodes: list[FunctionNode] = []
+
+        for file_path in file_paths:
+            rel_path = str(file_path.relative_to(root))
+            try:
+                file_hash = self._compute_hash(file_path)
+                if self._is_unchanged(project_id, rel_path, file_hash):
+                    continue
+
+                self._graph_store.remove_file_nodes(project_id, rel_path)
+                self._vector_store.remove_by_file(project_id, rel_path)
+
+                result = self._parser.parse_file(file_path)
+                if result is None:
+                    continue
+                tree, source, language, rules = result
+
+                extraction = extract_symbols(tree, source, rules)
+                func_nodes = build_graph(project_id, rel_path, extraction, self._graph_store)
+                all_function_nodes.extend(func_nodes)
+
+                for fn in func_nodes:
+                    text = f"{fn.name} {fn.signature} {fn.file}"
+                    vec = self._embedding.generate(text)
+                    self._vector_store.add(
+                        project_id=project_id,
+                        node_id=fn.id,
+                        embedding=vec,
+                        metadata={"file": rel_path, "name": fn.name, "signature": fn.signature},
+                    )
+
+                total_functions += len(extraction.functions)
+                total_classes += len(extraction.classes)
+                indexed_files += 1
+                self._update_hash(project_id, rel_path, file_hash)
+            except Exception as e:
+                error_files.append((rel_path, str(e)))
+                logger.warning("Failed to index %s: %s", rel_path, e)
+
+        if all_function_nodes:
+            resolve_calls(project_id, all_function_nodes, self._graph_store)
+
+        self._graph_store.save(project_id)
+        self._vector_store.save(project_id)
+        self._save_hashes(project_id)
+
+        return ProjectInfo(
+            project_id=project_id,
+            root_path=str(root),
+            total_files=indexed_files,
+            total_functions=total_functions,
+            total_classes=total_classes,
+            error_files=error_files,
+        )
+
+    def remove_deleted_file(self, project_id: str, rel_path: str) -> None:
+        """Remove a deleted file's data from stores."""
+        self._graph_store.remove_file_nodes(project_id, rel_path)
+        self._vector_store.remove_by_file(project_id, rel_path)
+
+        self._load_hashes(project_id)
+        hashes = self._file_hashes.get(project_id, {})
+        hashes.pop(rel_path, None)
+
+        self._graph_store.save(project_id)
+        self._vector_store.save(project_id)
+        self._save_hashes(project_id)
+        logger.info("Removed deleted file from index: %s", rel_path)
+
+    # ── Project registry ───────────────────────────────────────────
+
+    def _registry_path(self) -> Path | None:
+        if self._data_dir is None:
+            return None
+        return self._data_dir / "registry.json"
+
+    def _load_registry(self) -> None:
+        path = self._registry_path()
+        if path is not None and path.exists():
+            raw = json.loads(path.read_text())
+            self._registry = {
+                k: ProjectRegistry(**v) for k, v in raw.items()
+            }
+        else:
+            self._registry = {}
+
+    def _save_registry(self) -> None:
+        path = self._registry_path()
+        if path is None:
+            return
+        raw = {k: v.__dict__ for k, v in self._registry.items()}
+        path.write_text(json.dumps(raw, indent=2))
+
+    def _register_project(self, project_id: str, root_path: str) -> None:
+        self._registry[project_id] = ProjectRegistry(
+            project_id=project_id,
+            root_path=root_path,
+        )
+        self._save_registry()
+
+    def get_project_root(self, project_id: str) -> Path | None:
+        """Get the registered root path for a project."""
+        reg = self._registry.get(project_id)
+        if reg is None:
+            return None
+        root = Path(reg.root_path)
+        return root if root.is_dir() else None

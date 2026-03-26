@@ -100,7 +100,17 @@
       "WebFetch(domain:www.eesel.ai)",
       "WebFetch(domain:smartscope.blog)",
       "Bash(chmod:*)",
-      "Bash(python3 hooks/post_tool_reindex.py)"
+      "Bash(python3 hooks/post_tool_reindex.py)",
+      "Read(//Users/tabi4/.claude/**)",
+      "Bash(touch /Users/tabi4/.claude/plugins/marketplaces/code-intelligence-system/plugins/ci/data/test_write)",
+      "Bash(rm /Users/tabi4/.claude/plugins/marketplaces/code-intelligence-system/plugins/ci/data/test_write)",
+      "Bash(rm -rf /Users/tabi4/.claude/plugins/marketplaces/code-intelligence-system)",
+      "Bash(rm -rf /Users/tabi4/.claude/plugins/cache/code-intelligence-system)",
+      "Bash(rm -rf /Users/tabi4/.claude/plugins/data/ci-code-intelligence-system)",
+      "Bash(/Users/tabi4/.claude/plugins/data/ci-code-intelligence-system/venv/bin/python -c \"import click; import watchdog; print\\('OK'\\)\" 2>&1)",
+      "Bash(/Users/tabi4/.claude/plugins/data/ci-code-intelligence-system/venv/bin/python -c \"from app.container import create_container; c = create_container\\(\\); print\\(''OK:'', type\\(c\\).__name__\\)\")",
+      "Bash(/Users/tabi4/.claude/plugins/data/ci-code-intelligence-system/venv/bin/python -c \"from app.container import create_container; c = create_container\\(\\); print\\('watcher:', type\\(c.watcher_service\\).__name__\\)\" 2>&1)",
+      "Bash(CLAUDE_PLUGIN_DATA=/Users/tabi4/.claude/plugins/data/ci-code-intelligence-system bash run.sh index --project code-intelligence-system --status 2>&1)"
     ]
   }
 }

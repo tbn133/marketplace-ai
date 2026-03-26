@@ -36,11 +36,11 @@ python -m cmd.cli index --project <project_id> --status
 1. Determine the `project_id` from user arguments
 2. If user asks for status (e.g., `--status`, "what is indexed", "show indexed"):
    ```bash
-   cd ${CLAUDE_SKILL_DIR}/../.. && python -m cmd.cli index --project <project_id> --status
+   bash "${CLAUDE_SKILL_DIR}/../../run.sh" index --project <project_id> --status
    ```
 3. Otherwise, determine `path` and run the index command:
    ```bash
-   cd ${CLAUDE_SKILL_DIR}/../.. && python -m cmd.cli index <path> --project <project_id> [--force] [--verbose]
+   bash "${CLAUDE_SKILL_DIR}/../../run.sh" index <path> --project <project_id> [--force] [--verbose]
    ```
 4. Report the results
 5. If errors occur (e.g., missing tree-sitter), suggest: `pip install -r requirements.txt`

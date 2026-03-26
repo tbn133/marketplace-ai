@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"${CLAUDE_PLUGIN_ROOT}\" && python3 hooks/post_tool_reindex.py",
+            "command": "VENV=\"${CLAUDE_PLUGIN_DATA}/venv/bin/python\"; PY=$([ -x \"$VENV\" ] && echo \"$VENV\" || echo python3); cd \"${CLAUDE_PLUGIN_ROOT}\" && \"$PY\" hooks/post_tool_reindex.py",
             "timeout": 30000
           }
         ]

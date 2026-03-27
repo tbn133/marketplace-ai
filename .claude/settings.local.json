@@ -145,7 +145,11 @@
       "Bash(cp \"$SRC/plugins/code/start-mcp.sh\" \"$INSTALLED/plugins/code/start-mcp.sh\")",
       "Bash(cp \"$SRC/plugins/code/.claude-plugin/plugin.json\" \"$INSTALLED/plugins/code/.claude-plugin/plugin.json\")",
       "Bash(INSTALLED=~/.claude/plugins/marketplaces/code-intelligence-system/plugins/code \"$INSTALLED/venv/bin/pip\" list)",
-      "Bash(INSTALLED=~/.claude/plugins/marketplaces/code-intelligence-system/plugins/code \"$INSTALLED/venv/bin/pip\" install -r \"$INSTALLED/requirements.txt\")"
+      "Bash(INSTALLED=~/.claude/plugins/marketplaces/code-intelligence-system/plugins/code \"$INSTALLED/venv/bin/pip\" install -r \"$INSTALLED/requirements.txt\")",
+      "Bash(venv/bin/pip install:*)",
+      "Bash(timeout 5 bash start-mcp.sh)",
+      "Bash(/usr/bin/env python:*)",
+      "Bash(timeout 3 bash start-mcp.sh)"
     ]
   },
   "enableAllProjectMcpServers": true,

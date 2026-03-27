@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "code": {
-      "command": "python",
-      "args": ["-m", "cmd.cli", "mcp"],
+      "command": "bash",
+      "args": ["start-mcp.sh"],
       "cwd": "/Users/tabi4/Desktop/workspace/projects/mine/ai_tools/code-intelligence-system/plugins/code"
     }
   }

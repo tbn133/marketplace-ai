@@ -2,7 +2,8 @@
 """PostToolUse hook — auto re-index files modified by Claude Code Edit/Write tools.
 
 Reads JSON from stdin (Claude Code hook protocol), checks if the modified file
-belongs to an indexed project, and triggers incremental re-index if so.
+belongs to an indexed project, and triggers incremental re-index via the HTTP
+MCP server API.
 
 Fast path: if file is not in any indexed project, exits immediately with no
 heavy imports.
@@ -11,23 +12,12 @@ heavy imports.
 import json
 import os
 import sys
+import urllib.error
+import urllib.request
 from pathlib import Path
 
-PLUGIN_ROOT = Path(__file__).resolve().parent.parent
-
-# Shared data dir: CI_DATA_DIR > ~/.code-intelligence/data > plugin-local data/
-_shared_dir = Path(os.environ.get("CI_DATA_DIR", "")) if os.environ.get("CI_DATA_DIR") else None
-_home_dir = Path.home() / ".code-intelligence" / "data"
-_local_dir = PLUGIN_ROOT / "data"
-
-if _shared_dir and _shared_dir.exists():
-    DATA_DIR = _shared_dir
-elif _home_dir.exists():
-    DATA_DIR = _home_dir
-else:
-    DATA_DIR = _local_dir
-
-REGISTRY_PATH = DATA_DIR / "registry.json"
+SERVER_PORT = os.environ.get("CI_SERVER_PORT", "8100")
+SERVER_URL = f"http://localhost:{SERVER_PORT}"
 
 # Extensions supported by CodeParser (must match languages.py)
 SUPPORTED_EXTENSIONS = {
@@ -36,6 +26,31 @@ SUPPORTED_EXTENSIONS = {
     ".c", ".h", ".cpp", ".cc", ".cxx", ".hpp", ".hxx",
     ".php",
 }
+
+
+def _api_call(endpoint: str, payload: dict) -> dict | None:
+    """POST JSON to the server API. Returns response dict or None on failure."""
+    try:
+        data = json.dumps(payload).encode()
+        req = urllib.request.Request(
+            f"{SERVER_URL}/api{endpoint}",
+            data=data,
+            headers={"Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=25) as resp:
+            return json.loads(resp.read())
+    except (urllib.error.URLError, OSError, json.JSONDecodeError):
+        return None
+
+
+def _get_projects() -> list[dict]:
+    """Fetch project list from server."""
+    try:
+        req = urllib.request.Request(f"{SERVER_URL}/api/projects")
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            return json.loads(resp.read())
+    except (urllib.error.URLError, OSError, json.JSONDecodeError):
+        return []
 
 
 def main() -> None:
@@ -64,23 +79,25 @@ def main() -> None:
     if not file_path.is_file():
         return
 
-    # 5. Load registry — find matching project
-    if not REGISTRY_PATH.exists():
-        return
-
+    # 5. Check server health (fast fail if not running)
     try:
-        registry = json.loads(REGISTRY_PATH.read_text())
-    except (json.JSONDecodeError, IOError):
+        urllib.request.urlopen(f"{SERVER_URL}/api/health", timeout=2)
+    except (urllib.error.URLError, OSError):
+        return  # Server not running — skip silently
+
+    # 6. Find matching project from server registry
+    projects = _get_projects()
+    if not projects:
         return
 
     matched_project = None
     matched_root = None
 
-    for project_id, info in registry.items():
-        root = Path(info.get("root_path", "")).resolve()
+    for proj in projects:
+        root = Path(proj.get("root_path", "")).resolve()
         try:
             file_path.relative_to(root)
-            matched_project = project_id
+            matched_project = proj["project_id"]
             matched_root = root
             break
         except ValueError:
@@ -89,27 +106,21 @@ def main() -> None:
     if matched_project is None:
         return
 
-    # 6. Heavy path: import and re-index (only when we have a match)
-    sys.path.insert(0, str(PLUGIN_ROOT))
-    os.environ["DATA_DIR"] = str(DATA_DIR)
+    # 7. Call server API to re-index the file
+    result = _api_call("/index/file", {
+        "project_id": matched_project,
+        "file_path": str(file_path),
+        "root_path": str(matched_root),
+    })
 
-    try:
-        from app.container import create_container
-
-        container = create_container()
-        info = container.indexing_service.index_files(
-            [file_path], matched_project, matched_root,
+    if result and result.get("total_files", 0) > 0:
+        rel = str(file_path.relative_to(matched_root))
+        print(
+            f"[ci] Auto re-indexed: {rel} "
+            f"({result.get('total_functions', 0)} functions, "
+            f"{result.get('total_classes', 0)} classes)",
+            file=sys.stderr,
         )
-
-        if info.total_files > 0:
-            rel = str(file_path.relative_to(matched_root))
-            print(
-                f"[ci] Auto re-indexed: {rel} "
-                f"({info.total_functions} functions, {info.total_classes} classes)",
-                file=sys.stderr,
-            )
-    except Exception as e:
-        print(f"[ci] Auto re-index failed: {e}", file=sys.stderr)
 
 
 if __name__ == "__main__":

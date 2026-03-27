@@ -6,11 +6,21 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-DATA_DIR="${CLAUDE_PLUGIN_DATA:-}"
+PLUGIN_DATA="${CLAUDE_PLUGIN_DATA:-}"
 
+# ── Shared data directory ──
+# Priority: CI_DATA_DIR env > ~/.code-intelligence/data > plugin-local data/
+if [ -n "${CI_DATA_DIR:-}" ]; then
+    export DATA_DIR="$CI_DATA_DIR"
+elif [ -d "$HOME/.code-intelligence/data" ]; then
+    export DATA_DIR="$HOME/.code-intelligence/data"
+fi
+# If DATA_DIR not set, the CLI defaults to plugin-local data/ (standalone mode)
+
+# ── Resolve Python ──
 # 1. Plugin data venv (installed via SessionStart hook)
-if [ -n "$DATA_DIR" ] && [ -f "$DATA_DIR/venv/bin/python" ]; then
-    PYTHON="$DATA_DIR/venv/bin/python"
+if [ -n "$PLUGIN_DATA" ] && [ -f "$PLUGIN_DATA/venv/bin/python" ]; then
+    PYTHON="$PLUGIN_DATA/venv/bin/python"
 # 2. Local dev venv in plugin dir
 elif [ -f "$SCRIPT_DIR/.venv/bin/python" ]; then
     PYTHON="$SCRIPT_DIR/.venv/bin/python"
@@ -19,7 +29,7 @@ elif [ -f "$SCRIPT_DIR/../../.venv/bin/python" ]; then
     PYTHON="$SCRIPT_DIR/../../.venv/bin/python"
 # 4. Last resort — create venv on the fly
 else
-    TARGET="${DATA_DIR:-$SCRIPT_DIR}"
+    TARGET="${PLUGIN_DATA:-$SCRIPT_DIR}"
     echo "No venv found — creating in $TARGET/venv ..." >&2
     python3 -m venv "$TARGET/venv"
     "$TARGET/venv/bin/pip" install --quiet -r "$SCRIPT_DIR/requirements.txt"

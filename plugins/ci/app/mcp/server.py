@@ -106,6 +106,44 @@ def create_mcp_server(container: Container | None = None) -> Server:
                     },
                 },
             ),
+            Tool(
+                name="index_directory",
+                description=(
+                    "Index a source code directory using tree-sitter AST parsing. "
+                    "Supports Python, TypeScript, JavaScript, Go, Rust, Java, C, C++, PHP. "
+                    "Incremental by default — only re-parses changed files."
+                ),
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "path": {
+                            "type": "string",
+                            "description": "Absolute path to the directory to index",
+                        },
+                        "project_id": {
+                            "type": "string",
+                            "description": "Project identifier (e.g. 'myapp-backend')",
+                        },
+                        "force": {
+                            "type": "boolean",
+                            "description": "Force re-index all files ignoring cache",
+                            "default": False,
+                        },
+                    },
+                    "required": ["path", "project_id"],
+                },
+            ),
+            Tool(
+                name="index_status",
+                description="Check what is already indexed for a project",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "project_id": {"type": "string"},
+                    },
+                    "required": ["project_id"],
+                },
+            ),
         ]
 
     @mcp_server.call_tool()
@@ -155,6 +193,18 @@ def create_mcp_server(container: Container | None = None) -> Server:
                 for p in projects
             ]
             return [TextContent(type="text", text=json.dumps(data, indent=2))]
+
+        elif name == "index_directory":
+            info = c.indexing_service.index_directory(
+                directory=arguments["path"],
+                project_id=arguments["project_id"],
+                force=arguments.get("force", False),
+            )
+            return [TextContent(type="text", text=json.dumps(asdict(info), indent=2))]
+
+        elif name == "index_status":
+            status = c.indexing_service.get_project_status(arguments["project_id"])
+            return [TextContent(type="text", text=json.dumps(status, indent=2))]
 
         else:
             return [TextContent(type="text", text=f"Unknown tool: {name}")]

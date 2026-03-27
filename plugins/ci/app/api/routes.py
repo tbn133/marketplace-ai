@@ -12,6 +12,12 @@ router = APIRouter()
 
 # --- Request/Response schemas (API layer only) ---
 
+class IndexRequest(BaseModel):
+    path: str
+    project_id: str
+    force: bool = False
+
+
 class MemoryCreateRequest(BaseModel):
     project_id: str
     type: str
@@ -94,6 +100,38 @@ def delete_memory(request: Request, memory_id: str):
     if not svc.delete(memory_id):
         raise HTTPException(status_code=404, detail="Memory not found")
     return {"ok": True}
+
+
+@router.post("/index")
+def index_directory(request: Request, data: IndexRequest):
+    svc = _container(request).indexing_service
+    info = svc.index_directory(
+        directory=data.path,
+        project_id=data.project_id,
+        force=data.force,
+    )
+    return asdict(info)
+
+
+@router.post("/index/file")
+def index_file(request: Request, data: dict):
+    """Incremental re-index a single file. Used by PostToolUse hook."""
+    svc = _container(request).indexing_service
+    from pathlib import Path
+
+    project_id = data.get("project_id", "")
+    file_path = data.get("file_path", "")
+    root_path = data.get("root_path", "")
+
+    if not all([project_id, file_path, root_path]):
+        raise HTTPException(status_code=400, detail="Missing project_id, file_path, or root_path")
+
+    info = svc.index_files(
+        [Path(file_path)],
+        project_id=project_id,
+        root=Path(root_path),
+    )
+    return asdict(info)
 
 
 @router.get("/projects")

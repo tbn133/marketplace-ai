@@ -1,5 +1,6 @@
 {
   "code": {
-    "url": "http://localhost:8100/mcp/"
+    "command": "bash",
+    "args": ["start-mcp.sh"]
   }
 }

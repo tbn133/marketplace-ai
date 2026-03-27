@@ -136,11 +136,16 @@
       "Bash(cp /Users/tabi4/Desktop/workspace/projects/mine/ai_tools/code-intelligence-system/CLAUDE.md /Users/tabi4/.claude/plugins/marketplaces/code-intelligence-system/CLAUDE.md)",
       "Bash(cp /Users/tabi4/Desktop/workspace/projects/mine/ai_tools/code-intelligence-system/README.md /Users/tabi4/.claude/plugins/marketplaces/code-intelligence-system/README.md)",
       "Bash(cat ~/.claude/plugins/*/plugin.json)",
-      "Bash(pip list:*)"
+      "Bash(pip list:*)",
+      "Bash(timeout 10 bash ./start-mcp.sh)",
+      "Bash(printf '{\"\"\"\"jsonrpc\"\"\"\":\"\"\"\"2.0\"\"\"\",\"\"\"\"id\"\"\"\":1,\"\"\"\"method\"\"\"\":\"\"\"\"initialize\"\"\"\",\"\"\"\"params\"\"\"\":{\"\"\"\"protocolVersion\"\"\"\":\"\"\"\"2024-11-05\"\"\"\",\"\"\"\"capabilities\"\"\"\":{},\"\"\"\"clientInfo\"\"\"\":{\"\"\"\"name\"\"\"\":\"\"\"\"test\"\"\"\",\"\"\"\"version\"\"\"\":\"\"\"\"1.0\"\"\"\"}}}\\\\n{\"\"\"\"jsonrpc\"\"\"\":\"\"\"\"2.0\"\"\"\",\"\"\"\"id\"\"\"\":2,\"\"\"\"method\"\"\"\":\"\"\"\"tools/list\"\"\"\",\"\"\"\"params\"\"\"\":{}}\\\\n')",
+      "Bash(INSTALLED=~/.claude/plugins/marketplaces/code-intelligence-system)",
+      "Bash(SRC=/Users/tabi4/Desktop/workspace/projects/mine/ai_tools/code-intelligence-system)",
+      "Bash(cp \"$SRC/plugins/code/.mcp.json\" \"$INSTALLED/plugins/code/.mcp.json\")",
+      "Bash(cp \"$SRC/plugins/code/start-mcp.sh\" \"$INSTALLED/plugins/code/start-mcp.sh\")",
+      "Bash(cp \"$SRC/plugins/code/.claude-plugin/plugin.json\" \"$INSTALLED/plugins/code/.claude-plugin/plugin.json\")"
     ]
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "code"
-  ]
+  "enabledMcpjsonServers": []
 }

@@ -27,12 +27,14 @@ elif [ -f "$SCRIPT_DIR/.venv/bin/python" ]; then
 # 3. Local dev venv in repo root
 elif [ -f "$SCRIPT_DIR/../../.venv/bin/python" ]; then
     PYTHON="$SCRIPT_DIR/../../.venv/bin/python"
-# 4. Last resort — create venv on the fly
+# 4. Venv created by previous run in plugin dir
+elif [ -f "$SCRIPT_DIR/venv/bin/python" ]; then
+    PYTHON="$SCRIPT_DIR/venv/bin/python"
+# 5. Last resort — create venv on the fly
 else
     TARGET="${PLUGIN_DATA:-$SCRIPT_DIR}"
-    echo "No venv found — creating in $TARGET/venv ..." >&2
-    python3 -m venv "$TARGET/venv"
-    "$TARGET/venv/bin/pip" install --quiet -r "$SCRIPT_DIR/requirements.txt"
+    python3 -m venv "$TARGET/venv" 2>/dev/null
+    "$TARGET/venv/bin/pip" install --quiet --disable-pip-version-check -r "$SCRIPT_DIR/requirements.txt" 2>/dev/null
     PYTHON="$TARGET/venv/bin/python"
 fi
 

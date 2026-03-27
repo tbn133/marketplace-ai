@@ -7,35 +7,5 @@
   },
   "license": "MIT",
   "keywords": ["code-intelligence", "ast", "call-graph", "semantic-search", "memory"],
-  "skills": "./skills/",
-  "mcpServers": "./mcp-servers.json",
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "diff -q \"${CLAUDE_PLUGIN_ROOT}/requirements.txt\" \"${CLAUDE_PLUGIN_DATA}/requirements.txt\" >/dev/null 2>&1 || (python3 -m venv \"${CLAUDE_PLUGIN_DATA}/venv\" && \"${CLAUDE_PLUGIN_DATA}/venv/bin/pip\" install --quiet -r \"${CLAUDE_PLUGIN_ROOT}/requirements.txt\" && cp \"${CLAUDE_PLUGIN_ROOT}/requirements.txt\" \"${CLAUDE_PLUGIN_DATA}/requirements.txt\") || rm -f \"${CLAUDE_PLUGIN_DATA}/requirements.txt\""
-          },
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/start-server.sh\"",
-            "timeout": 15000
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "VENV=\"${CLAUDE_PLUGIN_DATA}/venv/bin/python\"; PY=$([ -x \"$VENV\" ] && echo \"$VENV\" || echo python3); cd \"${CLAUDE_PLUGIN_ROOT}\" && \"$PY\" hooks/post_tool_reindex.py",
-            "timeout": 30000
-          }
-        ]
-      }
-    ]
-  }
+  "skills": "./skills/"
 }

@@ -1,5 +1,5 @@
 {
   "ci": {
-    "url": "http://localhost:8100/mcp"
+    "url": "http://localhost:8100/mcp/"
   }
 }

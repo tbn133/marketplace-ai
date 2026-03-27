@@ -135,7 +135,12 @@
       "Bash(cp /Users/tabi4/Desktop/workspace/projects/mine/ai_tools/code-intelligence-system/.claude-plugin/marketplace.json /Users/tabi4/.claude/plugins/marketplaces/code-intelligence-system/.claude-plugin/marketplace.json)",
       "Bash(cp /Users/tabi4/Desktop/workspace/projects/mine/ai_tools/code-intelligence-system/CLAUDE.md /Users/tabi4/.claude/plugins/marketplaces/code-intelligence-system/CLAUDE.md)",
       "Bash(cp /Users/tabi4/Desktop/workspace/projects/mine/ai_tools/code-intelligence-system/README.md /Users/tabi4/.claude/plugins/marketplaces/code-intelligence-system/README.md)",
-      "Bash(cat ~/.claude/plugins/*/plugin.json)"
+      "Bash(cat ~/.claude/plugins/*/plugin.json)",
+      "Bash(pip list:*)"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "code"
+  ]
 }

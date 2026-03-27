@@ -143,7 +143,9 @@
       "Bash(SRC=/Users/tabi4/Desktop/workspace/projects/mine/ai_tools/code-intelligence-system)",
       "Bash(cp \"$SRC/plugins/code/.mcp.json\" \"$INSTALLED/plugins/code/.mcp.json\")",
       "Bash(cp \"$SRC/plugins/code/start-mcp.sh\" \"$INSTALLED/plugins/code/start-mcp.sh\")",
-      "Bash(cp \"$SRC/plugins/code/.claude-plugin/plugin.json\" \"$INSTALLED/plugins/code/.claude-plugin/plugin.json\")"
+      "Bash(cp \"$SRC/plugins/code/.claude-plugin/plugin.json\" \"$INSTALLED/plugins/code/.claude-plugin/plugin.json\")",
+      "Bash(INSTALLED=~/.claude/plugins/marketplaces/code-intelligence-system/plugins/code \"$INSTALLED/venv/bin/pip\" list)",
+      "Bash(INSTALLED=~/.claude/plugins/marketplaces/code-intelligence-system/plugins/code \"$INSTALLED/venv/bin/pip\" install -r \"$INSTALLED/requirements.txt\")"
     ]
   },
   "enableAllProjectMcpServers": true,

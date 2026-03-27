@@ -33,8 +33,9 @@ elif [ -f "$SCRIPT_DIR/venv/bin/python" ]; then
 # 5. Last resort — create venv on the fly
 else
     TARGET="${PLUGIN_DATA:-$SCRIPT_DIR}"
-    python3 -m venv "$TARGET/venv" 2>/dev/null
-    "$TARGET/venv/bin/pip" install --quiet --disable-pip-version-check -r "$SCRIPT_DIR/requirements.txt" 2>/dev/null
+    echo "[ci] Creating venv in $TARGET/venv ..." >&2
+    python3 -m venv "$TARGET/venv"
+    "$TARGET/venv/bin/pip" install --quiet --disable-pip-version-check -r "$SCRIPT_DIR/requirements.txt" >&2
     PYTHON="$TARGET/venv/bin/python"
 fi
 

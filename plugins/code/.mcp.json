@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "code": {
-      "command": "bash",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/start-mcp.sh"]
+      "type": "http",
+      "url": "http://localhost:8100/mcp/"
     }
   }
 }

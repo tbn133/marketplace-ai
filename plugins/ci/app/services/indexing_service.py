@@ -322,3 +322,28 @@ class IndexingService:
             return None
         root = Path(reg.root_path)
         return root if root.is_dir() else None
+
+    def list_projects(self, group_prefix: str | None = None) -> list[ProjectRegistry]:
+        """List all registered projects, optionally filtered by group prefix.
+
+        If group_prefix is given, returns only projects whose ID starts with
+        "{group_prefix}-".  E.g. group_prefix="myapp" matches "myapp-backend",
+        "myapp-frontend", etc.
+        """
+        self._load_registry()
+        if group_prefix is None:
+            return list(self._registry.values())
+        prefix = f"{group_prefix}-"
+        return [r for r in self._registry.values() if r.project_id.startswith(prefix)]
+
+    def resolve_project_ids(self, project_id: str) -> list[str]:
+        """Resolve a project_id that may contain a wildcard.
+
+        - "myapp-backend"  → ["myapp-backend"]  (exact match)
+        - "myapp-*"        → ["myapp-backend", "myapp-frontend", ...]  (prefix match)
+        """
+        if not project_id.endswith("-*"):
+            return [project_id]
+        prefix = project_id[:-1]  # "myapp-*" → "myapp-"
+        self._load_registry()
+        return sorted(pid for pid in self._registry if pid.startswith(prefix))

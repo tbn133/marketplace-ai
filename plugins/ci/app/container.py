@@ -128,8 +128,12 @@ def create_container(config: AppConfig | None = None) -> Container:
         vector_store=vector_store,
         embedding=embedding,
         cache=cache,
+        project_resolver=indexing_service.resolve_project_ids,
     )
-    memory_service = MemoryService(memory_store=memory_store)
+    memory_service = MemoryService(
+        memory_store=memory_store,
+        project_resolver=indexing_service.resolve_project_ids,
+    )
 
     return Container(
         config=config,

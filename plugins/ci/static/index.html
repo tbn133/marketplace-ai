@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Intelligence Dashboard</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-secondary: #161b22;
+    --bg-tertiary: #21262d;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --accent-hover: #79c0ff;
+    --green: #3fb950;
+    --orange: #d29922;
+    --red: #f85149;
+    --purple: #bc8cff;
+    --radius: 6px;
+    --sidebar-w: 260px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  header h1 {
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  header h1 .icon { font-size: 20px; }
+  #server-status {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+  }
+  #server-status.ok { border-color: var(--green); color: var(--green); }
+  #server-status.err { border-color: var(--red); color: var(--red); }
+
+  /* ── Layout ── */
+  .layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .sidebar-header {
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-content { flex: 1; overflow-y: auto; padding: 8px 0; }
+
+  .group-label {
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+  }
+  .group-label:hover { color: var(--text); }
+  .group-label .arrow { font-size: 10px; transition: transform 0.15s; }
+  .group-label.collapsed .arrow { transform: rotate(-90deg); }
+
+  .project-item {
+    padding: 6px 16px 6px 32px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text-muted);
+    border-left: 2px solid transparent;
+    transition: all 0.1s;
+  }
+  .project-item:hover { background: var(--bg-tertiary); color: var(--text); }
+  .project-item.active {
+    background: var(--bg-tertiary);
+    color: var(--accent);
+    border-left-color: var(--accent);
+  }
+
+  /* ── Main ── */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex;
+    gap: 0;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .tab {
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── Tab Content ── */
+  .tab-content { flex: 1; overflow-y: auto; padding: 20px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── Search Bar ── */
+  .search-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .search-bar input {
+    flex: 1;
+    padding: 8px 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+  }
+  .search-bar input:focus { border-color: var(--accent); }
+  .search-bar input::placeholder { color: var(--text-muted); }
+
+  button, .btn {
+    padding: 8px 16px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+  button:hover, .btn:hover { background: var(--accent-hover); }
+  button:disabled { opacity: 0.5; cursor: default; }
+  .btn-secondary {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .btn-secondary:hover { background: var(--border); }
+
+  /* ── Result Cards ── */
+  .result-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    transition: border-color 0.15s;
+  }
+  .result-card:hover { border-color: var(--accent); }
+
+  .result-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .result-score {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--bg-tertiary);
+    color: var(--green);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .result-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .result-file {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .result-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+  }
+  .result-signature {
+    font-size: 12px;
+    color: var(--purple);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    margin-top: 4px;
+    padding: 4px 8px;
+    background: var(--bg);
+    border-radius: 4px;
+    overflow-x: auto;
+  }
+  .result-project-badge {
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--bg-tertiary);
+    color: var(--orange);
+    border: 1px solid var(--border);
+  }
+
+  /* ── Graph Tree ── */
+  .graph-tree { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; }
+  .graph-node { padding: 2px 0; }
+  .graph-node .node-name { color: var(--accent); }
+  .graph-node .node-file { color: var(--text-muted); font-size: 11px; }
+  .graph-section { margin: 12px 0 4px 0; font-weight: 600; color: var(--text-muted); font-size: 12px; }
+  .graph-child { padding-left: 24px; border-left: 1px solid var(--border); margin-left: 8px; }
+
+  /* ── Memory ── */
+  .memory-form {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 8px;
+    margin-bottom: 16px;
+    align-items: start;
+  }
+  .memory-form textarea {
+    padding: 8px 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 13px;
+    resize: vertical;
+    min-height: 38px;
+    outline: none;
+    font-family: inherit;
+  }
+  .memory-form textarea:focus { border-color: var(--accent); }
+  .memory-form select {
+    padding: 8px 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+  .badge-rule { background: #1f3d1f; color: var(--green); }
+  .badge-incident { background: #3d1f1f; color: var(--red); }
+  .badge-note { background: #1f2d3d; color: var(--accent); }
+  .badge-tag {
+    background: var(--bg-tertiary);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+
+  .memory-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin-bottom: 8px;
+  }
+  .memory-card .memory-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .memory-card .memory-content { font-size: 13px; line-height: 1.5; }
+  .memory-card .memory-footer {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  /* ── Status Panel ── */
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+  }
+  .stat-value { font-size: 28px; font-weight: 700; color: var(--accent); }
+  .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+  /* ── Empty / Loading ── */
+  .empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+  .loading { opacity: 0.6; }
+  .spinner {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Related Section ── */
+  .related-section {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .related-section h3 {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .related-item {
+    display: inline-block;
+    font-size: 12px;
+    padding: 4px 10px;
+    margin: 2px 4px 2px 0;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    cursor: pointer;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .related-item:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span class="icon">&#9672;</span> Code Intelligence</h1>
+  <span id="server-status">checking...</span>
+</header>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">Projects</div>
+    <div class="sidebar-content" id="project-list">
+      <div class="empty">Loading...</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="tabs">
+      <div class="tab active" data-tab="search">Search</div>
+      <div class="tab" data-tab="graph">Call Graph</div>
+      <div class="tab" data-tab="memory">Memory</div>
+      <div class="tab" data-tab="status">Status</div>
+    </div>
+
+    <div class="tab-content">
+      <!-- Search Tab -->
+      <div class="tab-panel active" id="panel-search">
+        <div class="search-bar">
+          <input type="text" id="search-query" placeholder="Search code (e.g. authentication logic, payment handler)..." />
+          <button onclick="doSearch()">Search</button>
+        </div>
+        <div id="search-results"><div class="empty">Select a project and enter a search query</div></div>
+      </div>
+
+      <!-- Graph Tab -->
+      <div class="tab-panel" id="panel-graph">
+        <div class="search-bar">
+          <input type="text" id="graph-func-id" placeholder="Function ID (e.g. project::file.py::func_name)" />
+          <select id="graph-depth">
+            <option value="1">Depth 1</option>
+            <option value="2" selected>Depth 2</option>
+            <option value="3">Depth 3</option>
+          </select>
+          <button onclick="doGraph()">Show Graph</button>
+        </div>
+        <div id="graph-results"><div class="empty">Enter a function ID to view its call graph</div></div>
+      </div>
+
+      <!-- Memory Tab -->
+      <div class="tab-panel" id="panel-memory">
+        <div class="memory-form">
+          <textarea id="memory-content" placeholder="Add a memory (business rule, incident note, etc.)..." rows="1"></textarea>
+          <select id="memory-type">
+            <option value="business_rule">Business Rule</option>
+            <option value="incident">Incident</option>
+            <option value="note">Note</option>
+          </select>
+          <button onclick="addMemory()">Add</button>
+        </div>
+        <div class="search-bar">
+          <input type="text" id="memory-query" placeholder="Search memories..." />
+          <button onclick="doMemorySearch()">Search</button>
+        </div>
+        <div id="memory-results"><div class="empty">Select a project to view memories</div></div>
+      </div>
+
+      <!-- Status Tab -->
+      <div class="tab-panel" id="panel-status">
+        <div id="status-content"><div class="empty">Select a project to view status</div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const API = '/api';
+let currentProject = null;
+let allProjects = [];
+
+// ── Init ──
+document.addEventListener('DOMContentLoaded', () => {
+  checkHealth();
+  loadProjects();
+  setupTabs();
+  setupKeyboard();
+});
+
+// ── Health ──
+async function checkHealth() {
+  const el = document.getElementById('server-status');
+  try {
+    const r = await fetch(`${API}/health`);
+    if (r.ok) {
+      el.textContent = 'connected';
+      el.className = 'ok';
+    } else throw new Error();
+  } catch {
+    el.textContent = 'disconnected';
+    el.className = 'err';
+  }
+}
+
+// ── Projects ──
+async function loadProjects() {
+  try {
+    const r = await fetch(`${API}/projects`);
+    allProjects = await r.json();
+    renderProjects(allProjects);
+  } catch {
+    document.getElementById('project-list').innerHTML = '<div class="empty">Failed to load projects</div>';
+  }
+}
+
+function renderProjects(projects) {
+  const el = document.getElementById('project-list');
+  if (!projects.length) {
+    el.innerHTML = '<div class="empty">No projects indexed</div>';
+    return;
+  }
+
+  // Group by prefix
+  const groups = {};
+  projects.forEach(p => {
+    const parts = p.project_id.split('-');
+    const group = parts.length > 1 ? parts[0] : '_ungrouped';
+    if (!groups[group]) groups[group] = [];
+    groups[group].push(p);
+  });
+
+  let html = '';
+  for (const [group, items] of Object.entries(groups).sort()) {
+    const label = group === '_ungrouped' ? 'Other' : group;
+    html += `<div class="group-label" onclick="toggleGroup(this)">
+      <span class="arrow">&#9662;</span> ${esc(label)}
+      <span style="color:var(--text-muted);font-weight:400;font-size:11px">(${items.length})</span>
+    </div>`;
+    html += '<div class="group-items">';
+    items.forEach(p => {
+      const shortName = p.project_id.replace(group + '-', '');
+      html += `<div class="project-item" data-project="${esc(p.project_id)}" onclick="selectProject('${esc(p.project_id)}')">
+        ${esc(shortName)}
+      </div>`;
+    });
+    html += '</div>';
+  }
+  el.innerHTML = html;
+}
+
+function toggleGroup(el) {
+  el.classList.toggle('collapsed');
+  const items = el.nextElementSibling;
+  items.style.display = el.classList.contains('collapsed') ? 'none' : '';
+}
+
+function selectProject(projectId) {
+  currentProject = projectId;
+  document.querySelectorAll('.project-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.project === projectId);
+  });
+  // Auto-load status and memories
+  loadStatus();
+  doMemorySearch();
+}
+
+// ── Tabs ──
+function setupTabs() {
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(`panel-${tab.dataset.tab}`).classList.add('active');
+    });
+  });
+}
+
+// ── Keyboard ──
+function setupKeyboard() {
+  document.getElementById('search-query').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doSearch();
+  });
+  document.getElementById('graph-func-id').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doGraph();
+  });
+  document.getElementById('memory-query').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doMemorySearch();
+  });
+}
+
+// ── Search ──
+async function doSearch() {
+  const query = document.getElementById('search-query').value.trim();
+  if (!query) return;
+  if (!currentProject) {
+    document.getElementById('search-results').innerHTML = '<div class="empty">Select a project first</div>';
+    return;
+  }
+
+  const el = document.getElementById('search-results');
+  el.innerHTML = '<div class="empty"><span class="spinner"></span> Searching...</div>';
+
+  try {
+    const pid = currentProject;
+    const r = await fetch(`${API}/search?project_id=${enc(pid)}&query=${enc(query)}&top_k=20`);
+    const data = await r.json();
+    renderSearchResults(data);
+  } catch (err) {
+    el.innerHTML = `<div class="empty">Error: ${esc(err.message)}</div>`;
+  }
+}
+
+function renderSearchResults(data) {
+  const el = document.getElementById('search-results');
+  const fns = data.functions || [];
+  const related = data.related || [];
+
+  if (!fns.length) {
+    el.innerHTML = '<div class="empty">No results found</div>';
+    return;
+  }
+
+  let html = '';
+  fns.forEach(fn => {
+    const score = (fn.score || 0).toFixed(3);
+    const pid = fn.project_id || '';
+    html += `<div class="result-card">
+      <div class="result-header">
+        <span class="result-score">${score}</span>
+        <span class="result-name">${esc(fn.name || '?')}</span>
+        ${pid && pid !== currentProject ? `<span class="result-project-badge">${esc(pid)}</span>` : ''}
+      </div>
+      <div class="result-file">${esc(fn.file || '')}:${fn.start_line || '?'}</div>
+      ${fn.signature ? `<div class="result-signature">${esc(fn.signature)}</div>` : ''}
+      ${fn.id ? `<div class="result-meta"><a href="#" onclick="showGraph('${esc(fn.id)}');return false" style="color:var(--accent);text-decoration:none;font-size:12px">View call graph &rarr;</a></div>` : ''}
+    </div>`;
+  });
+
+  if (related.length) {
+    html += '<div class="related-section"><h3>Related functions</h3>';
+    related.slice(0, 20).forEach(r => {
+      html += `<span class="related-item" onclick="showGraph('${esc(r.id || '')}')">${esc(r.name || '?')} <span style="color:var(--text-muted)">${esc((r.file || '').split('/').pop())}</span></span>`;
+    });
+    html += '</div>';
+  }
+
+  el.innerHTML = html;
+}
+
+// ── Graph ──
+function showGraph(funcId) {
+  document.getElementById('graph-func-id').value = funcId;
+  // Switch to graph tab
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector('[data-tab="graph"]').classList.add('active');
+  document.getElementById('panel-graph').classList.add('active');
+  doGraph();
+}
+
+async function doGraph() {
+  const funcId = document.getElementById('graph-func-id').value.trim();
+  if (!funcId) return;
+  if (!currentProject) {
+    document.getElementById('graph-results').innerHTML = '<div class="empty">Select a project first</div>';
+    return;
+  }
+
+  const depth = document.getElementById('graph-depth').value;
+  const el = document.getElementById('graph-results');
+  el.innerHTML = '<div class="empty"><span class="spinner"></span> Loading graph...</div>';
+
+  try {
+    const pid = currentProject;
+    const r = await fetch(`${API}/graph?project_id=${enc(pid)}&function_id=${enc(funcId)}&depth=${depth}`);
+    const data = await r.json();
+    renderGraph(data);
+  } catch (err) {
+    el.innerHTML = `<div class="empty">Error: ${esc(err.message)}</div>`;
+  }
+}
+
+function renderGraph(data) {
+  const el = document.getElementById('graph-results');
+  const nodes = data.nodes || [];
+  const edges = data.edges || [];
+
+  if (!nodes.length) {
+    el.innerHTML = '<div class="empty">Function not found</div>';
+    return;
+  }
+
+  // Find root node (first node or the one matching the query)
+  const root = nodes[0];
+  const callees = edges.filter(e => e.source === root.id).map(e => nodes.find(n => n.id === e.target)).filter(Boolean);
+  const callers = edges.filter(e => e.target === root.id).map(e => nodes.find(n => n.id === e.source)).filter(Boolean);
+
+  let html = '<div class="graph-tree">';
+
+  // Root
+  html += `<div class="result-card">
+    <div class="result-header">
+      <span class="result-name">${esc(root.name || root.id)}</span>
+    </div>
+    <div class="result-file">${esc(root.file || '')}:${root.start_line || '?'}</div>
+    ${root.signature ? `<div class="result-signature">${esc(root.signature)}</div>` : ''}
+  </div>`;
+
+  // Callers
+  if (callers.length) {
+    html += '<div class="graph-section">&#8592; Called by (' + callers.length + ')</div>';
+    html += '<div class="graph-child">';
+    callers.forEach(n => {
+      html += `<div class="graph-node">
+        <span class="node-name" style="cursor:pointer" onclick="showGraph('${esc(n.id)}')">${esc(n.name || n.id)}</span>
+        <span class="node-file">${esc(n.file || '')}:${n.start_line || ''}</span>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  // Callees
+  if (callees.length) {
+    html += '<div class="graph-section">&#8594; Calls (' + callees.length + ')</div>';
+    html += '<div class="graph-child">';
+    callees.forEach(n => {
+      html += `<div class="graph-node">
+        <span class="node-name" style="cursor:pointer" onclick="showGraph('${esc(n.id)}')">${esc(n.name || n.id)}</span>
+        <span class="node-file">${esc(n.file || '')}:${n.start_line || ''}</span>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  if (!callers.length && !callees.length) {
+    html += '<div class="empty" style="padding:12px">No call relationships found</div>';
+  }
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ── Memory ──
+async function addMemory() {
+  const content = document.getElementById('memory-content').value.trim();
+  if (!content || !currentProject) return;
+
+  const type = document.getElementById('memory-type').value;
+  try {
+    await fetch(`${API}/memory`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ project_id: currentProject, type, content, tags: [] }),
+    });
+    document.getElementById('memory-content').value = '';
+    doMemorySearch();
+  } catch (err) {
+    alert('Failed to add memory: ' + err.message);
+  }
+}
+
+async function doMemorySearch() {
+  if (!currentProject) return;
+
+  const query = document.getElementById('memory-query').value.trim();
+  const el = document.getElementById('memory-results');
+  el.innerHTML = '<div class="empty"><span class="spinner"></span> Loading...</div>';
+
+  try {
+    const pid = currentProject;
+    const r = await fetch(`${API}/memory/search?project_id=${enc(pid)}&query=${enc(query)}&limit=50`);
+    const data = await r.json();
+    renderMemories(data);
+  } catch (err) {
+    el.innerHTML = `<div class="empty">Error: ${esc(err.message)}</div>`;
+  }
+}
+
+function renderMemories(data) {
+  const el = document.getElementById('memory-results');
+  const mems = data.memories || [];
+
+  if (!mems.length) {
+    el.innerHTML = '<div class="empty">No memories found</div>';
+    return;
+  }
+
+  let html = '';
+  mems.forEach(m => {
+    const badgeClass = m.type === 'business_rule' ? 'badge-rule' : m.type === 'incident' ? 'badge-incident' : 'badge-note';
+    const typeLabel = m.type === 'business_rule' ? 'Rule' : m.type === 'incident' ? 'Incident' : 'Note';
+    html += `<div class="memory-card">
+      <div class="memory-header">
+        <span class="badge ${badgeClass}">${typeLabel}</span>
+        <span style="font-size:11px;color:var(--text-muted)">${esc(m.project_id || '')}</span>
+      </div>
+      <div class="memory-content">${esc(m.content)}</div>
+      <div class="memory-footer">
+        ${(m.tags || []).map(t => `<span class="badge badge-tag">${esc(t)}</span>`).join('')}
+        <span style="margin-left:auto">${formatDate(m.created_at)}</span>
+      </div>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+// ── Status ──
+async function loadStatus() {
+  if (!currentProject) return;
+  const el = document.getElementById('status-content');
+  el.innerHTML = '<div class="empty"><span class="spinner"></span> Loading...</div>';
+
+  try {
+    const r = await fetch(`${API}/projects/${enc(currentProject)}/status`);
+    if (!r.ok) throw new Error('Not indexed');
+    const data = await r.json();
+    renderStatus(data);
+  } catch (err) {
+    el.innerHTML = `<div class="empty">${esc(err.message)}</div>`;
+  }
+}
+
+function renderStatus(data) {
+  const el = document.getElementById('status-content');
+  let html = `
+    <div class="status-grid">
+      <div class="stat-card"><div class="stat-value">${data.indexed_files || 0}</div><div class="stat-label">Files</div></div>
+      <div class="stat-card"><div class="stat-value">${data.total_functions || 0}</div><div class="stat-label">Functions</div></div>
+    </div>
+    <h3 style="font-size:13px;color:var(--text-muted);margin-bottom:8px">Indexed files</h3>
+    <div style="font-family:'SF Mono','Fira Code',monospace;font-size:12px;line-height:1.8;max-height:400px;overflow-y:auto">
+  `;
+  (data.files || []).forEach(f => {
+    html += `<div style="color:var(--text-muted)">${esc(f)}</div>`;
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ── Utilities ──
+function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
+function enc(s) { return encodeURIComponent(s); }
+function formatDate(iso) {
+  if (!iso) return '';
+  try { return new Date(iso).toLocaleDateString('en', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }); }
+  catch { return iso; }
+}
+</script>
+</body>
+</html>

@@ -1,4 +1,9 @@
-"""MCP server — receives Container for dependency injection."""
+"""MCP server — receives Container for dependency injection.
+
+Supports two transports:
+- stdio  (default, for single Claude instance)
+- HTTP   (via streamable_http_app, for multi-repo shared server)
+"""
 
 from __future__ import annotations
 
@@ -22,11 +27,17 @@ def create_mcp_server(container: Container | None = None) -> Server:
         return [
             Tool(
                 name="search_code",
-                description="Search indexed code by semantic query",
+                description=(
+                    "Search indexed code by semantic query. "
+                    "Use wildcard project_id (e.g. 'myapp-*') to search across all repos in a group."
+                ),
                 inputSchema={
                     "type": "object",
                     "properties": {
-                        "project_id": {"type": "string", "description": "Project identifier"},
+                        "project_id": {
+                            "type": "string",
+                            "description": "Project identifier. Use 'group-*' to search across all repos in the group.",
+                        },
                         "query": {"type": "string", "description": "Search query"},
                         "top_k": {"type": "integer", "description": "Number of results", "default": 10},
                     },
@@ -48,11 +59,17 @@ def create_mcp_server(container: Container | None = None) -> Server:
             ),
             Tool(
                 name="search_memory",
-                description="Search persistent memory entries",
+                description=(
+                    "Search persistent memory entries. "
+                    "Use wildcard project_id (e.g. 'myapp-*') to search across all repos in a group."
+                ),
                 inputSchema={
                     "type": "object",
                     "properties": {
-                        "project_id": {"type": "string"},
+                        "project_id": {
+                            "type": "string",
+                            "description": "Project identifier. Use 'group-*' to search across all repos in the group.",
+                        },
                         "query": {"type": "string", "default": ""},
                         "type": {"type": "string", "default": ""},
                     },
@@ -71,6 +88,22 @@ def create_mcp_server(container: Container | None = None) -> Server:
                         "tags": {"type": "array", "items": {"type": "string"}, "default": []},
                     },
                     "required": ["project_id", "type", "content"],
+                },
+            ),
+            Tool(
+                name="list_projects",
+                description=(
+                    "List all indexed projects. Optionally filter by group prefix. "
+                    "Use this to discover available projects before searching."
+                ),
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "group": {
+                            "type": "string",
+                            "description": "Group prefix to filter (e.g. 'myapp' returns myapp-backend, myapp-frontend, etc.)",
+                        },
+                    },
                 },
             ),
         ]
@@ -109,6 +142,19 @@ def create_mcp_server(container: Container | None = None) -> Server:
                 tags=arguments.get("tags", []),
             )
             return [TextContent(type="text", text=json.dumps(asdict(memory), indent=2))]
+
+        elif name == "list_projects":
+            group = arguments.get("group")
+            projects = c.indexing_service.list_projects(group_prefix=group)
+            data = [
+                {
+                    "project_id": p.project_id,
+                    "root_path": p.root_path,
+                    "registered_at": p.registered_at,
+                }
+                for p in projects
+            ]
+            return [TextContent(type="text", text=json.dumps(data, indent=2))]
 
         else:
             return [TextContent(type="text", text=f"Unknown tool: {name}")]

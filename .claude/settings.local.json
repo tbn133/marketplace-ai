@@ -110,7 +110,19 @@
       "Bash(/Users/tabi4/.claude/plugins/data/ci-code-intelligence-system/venv/bin/python -c \"import click; import watchdog; print\\('OK'\\)\" 2>&1)",
       "Bash(/Users/tabi4/.claude/plugins/data/ci-code-intelligence-system/venv/bin/python -c \"from app.container import create_container; c = create_container\\(\\); print\\(''OK:'', type\\(c\\).__name__\\)\")",
       "Bash(/Users/tabi4/.claude/plugins/data/ci-code-intelligence-system/venv/bin/python -c \"from app.container import create_container; c = create_container\\(\\); print\\('watcher:', type\\(c.watcher_service\\).__name__\\)\" 2>&1)",
-      "Bash(CLAUDE_PLUGIN_DATA=/Users/tabi4/.claude/plugins/data/ci-code-intelligence-system bash run.sh index --project code-intelligence-system --status 2>&1)"
+      "Bash(CLAUDE_PLUGIN_DATA=/Users/tabi4/.claude/plugins/data/ci-code-intelligence-system bash run.sh index --project code-intelligence-system --status 2>&1)",
+      "mcp__plugin_context7_context7__resolve-library-id",
+      "mcp__plugin_context7_context7__query-docs",
+      "Bash(python3:*)",
+      "Bash(../../.venv/bin/python -c \"\nfrom mcp.server import Server\ns = Server\\('test'\\)\nassert hasattr\\(s, 'streamable_http_app'\\), 'streamable_http_app not found!'\nprint\\('streamable_http_app: available'\\)\n\nimport mcp\nprint\\(f'mcp version: {mcp.__version__}'\\)\n\")",
+      "Bash(../../.venv/bin/pip show:*)",
+      "Bash(../../.venv/bin/pip list:*)",
+      "Bash(../../.venv/bin/python -c \"import mcp; print\\(dir\\(mcp\\)\\); print\\(mcp.__file__\\)\")",
+      "Bash(../../.venv/bin/python -c \"\nfrom mcp.server.streamable_http_manager import StreamableHTTPSessionManager\nimport inspect\nsig = inspect.signature\\(StreamableHTTPSessionManager.__init__\\)\nprint\\('__init__ params:', sig\\)\nprint\\(\\)\nmethods = [m for m in dir\\(StreamableHTTPSessionManager\\) if not m.startswith\\('_'\\)]\nprint\\('methods:', methods\\)\n\")",
+      "Bash(../../.venv/bin/python -c \"\nfrom mcp.server import Server\nfrom mcp.server.streamable_http_manager import StreamableHTTPSessionManager\n\ns = Server\\('test'\\)\nmgr = StreamableHTTPSessionManager\\(app=s, stateless=True\\)\nprint\\('StreamableHTTPSessionManager created OK'\\)\nprint\\('handle_request:', type\\(mgr.handle_request\\)\\)\n\")",
+      "Bash(../../.venv/bin/python -c \"\nfrom app.mcp.http_server import create_http_app, run_http_mcp_server\nfrom app.container import create_container\n\nc = create_container\\(\\)\napp = create_http_app\\(c\\)\nprint\\(f'ASGI app type: {type\\(app\\).__name__}'\\)\nprint\\(f'Routes: {[r.path for r in app.routes]}'\\)\nprint\\('All OK!'\\)\n\")",
+      "Bash(../../.venv/bin/python -m cmd.cli serve-mcp --help)",
+      "Bash(DATA_DIR=/tmp/ci-test-data ../../.venv/bin/python -m cmd.cli index ./app --project testgroup-ci -v)"
     ]
   }
 }

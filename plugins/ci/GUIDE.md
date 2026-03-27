@@ -715,6 +715,105 @@ python -m cmd.cli watch --project myproject
 
 ---
 
+## Multi-repo sharing (Central MCP Server)
+
+### Vấn đề
+
+Khi bạn có nhiều repos thuộc cùng 1 project nhưng mỗi repo mở Claude Code riêng, mỗi Claude instance có data isolated — không search cross-repo được.
+
+### Giải pháp: Central MCP server qua HTTP
+
+Chạy 1 MCP server trung tâm, tất cả Claude instances kết nối chung.
+
+```
+Terminal: serve-mcp --port 8100 --data-dir ~/.code-intelligence/data
+
+Claude A (myapp-backend)  ──┐
+Claude B (myapp-frontend) ──┼── http://localhost:8100/mcp ── shared data/
+Claude C (myapp-payment)  ──┘
+```
+
+### Bước 1: Đặt tên project theo format `{group}-{reponame}`
+
+```bash
+# Tất cả repos cùng group "myapp"
+myapp-backend        ← Python API
+myapp-frontend       ← TypeScript SPA
+myapp-payment        ← Go service
+```
+
+Chỉ các repos cùng group mới share data với nhau.
+
+### Bước 2: Index từng repo với shared data directory
+
+```bash
+cd plugins/ci
+
+# Chỉ định DATA_DIR chung cho tất cả repos
+DATA_DIR=~/.code-intelligence/data python -m cmd.cli index /repos/backend --project myapp-backend -v
+DATA_DIR=~/.code-intelligence/data python -m cmd.cli index /repos/frontend --project myapp-frontend -v
+DATA_DIR=~/.code-intelligence/data python -m cmd.cli index /repos/payment --project myapp-payment -v
+```
+
+### Bước 3: Start MCP HTTP server
+
+```bash
+cd plugins/ci
+
+# Foreground
+python -m cmd.cli serve-mcp --port 8100 --data-dir ~/.code-intelligence/data
+
+# Background (nohup)
+nohup python -m cmd.cli serve-mcp --port 8100 --data-dir ~/.code-intelligence/data &
+```
+
+Server lắng nghe tại `http://localhost:8100/mcp`.
+
+### Bước 4: Configure mỗi repo's Claude
+
+Trong mỗi repo, tạo `.claude/settings.local.json`:
+
+```json
+{
+  "mcpServers": {
+    "ci": {
+      "url": "http://localhost:8100/mcp"
+    }
+  }
+}
+```
+
+> **Lưu ý**: Nếu repo đã cài CI plugin (stdio mode), xoá hoặc rename MCP config cũ để tránh conflict.
+
+### Bước 5: Search cross-repo bằng wildcard
+
+```bash
+# Search 1 repo cụ thể
+/ci:search "authentication logic" --project myapp-backend
+
+# Search TOÀN BỘ repos trong group (dùng wildcard *)
+/ci:search "authentication logic" --project "myapp-*"
+
+# List tất cả projects trong group
+list_projects(group="myapp")
+# → [myapp-backend, myapp-frontend, myapp-payment]
+
+# Memory cũng hỗ trợ cross-repo
+/ci:remember "JWT must use RS256" --project myapp-backend
+/ci:recall "JWT" --project "myapp-*"    ← tìm từ tất cả repos trong group
+```
+
+### Wildcard rules
+
+| project_id | Hành vi |
+|---|---|
+| `myapp-backend` | Search chỉ trong repo đó |
+| `myapp-*` | Search tất cả repos bắt đầu bằng `myapp-` |
+
+Wildcard chỉ áp dụng cho `search_code` và `search_memory`. Các tool khác (`get_call_graph`, `add_memory`) yêu cầu project_id chính xác.
+
+---
+
 ## Tham khảo nhanh
 
 ```bash
@@ -737,7 +836,8 @@ python -m cmd.cli watch --project <id> [--debounce 2]
 
 # Server
 python -m cmd.cli serve              # REST API (port 8000)
-python -m cmd.cli mcp                # MCP server (stdio)
+python -m cmd.cli mcp                # MCP server (stdio, single instance)
+python -m cmd.cli serve-mcp          # MCP server (HTTP, multi-repo sharing)
 
 # Migrate
 python -m cmd.cli migrate [--project <id>] [--dry-run]

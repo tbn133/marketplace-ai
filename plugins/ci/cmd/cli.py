@@ -211,6 +211,41 @@ def run_mcp():
     asyncio.run(run_mcp_server())
 
 
+@cli.command("serve-mcp")
+@click.option("--host", default="127.0.0.1", help="Bind address (default: 127.0.0.1)")
+@click.option("--port", default=8100, type=int, help="Port (default: 8100)")
+@click.option(
+    "--data-dir",
+    default="~/.code-intelligence/data",
+    help="Shared data directory (default: ~/.code-intelligence/data)",
+)
+@click.option("--log-level", default="INFO", help="Log level (default: INFO)")
+def serve_mcp(host: str, port: int, data_dir: str, log_level: str):
+    """Start the MCP server over HTTP for multi-repo sharing.
+
+    All Claude instances connect to this single server via:
+
+    \b
+      { "mcpServers": { "ci": { "url": "http://HOST:PORT/mcp" } } }
+
+    \b
+    Index repos first (use same --data-dir):
+      DATA_DIR=~/.code-intelligence/data python -m cmd.cli index /repo --project myapp-backend
+
+    \b
+    Examples:
+      python -m cmd.cli serve-mcp
+      python -m cmd.cli serve-mcp --port 9000 --data-dir /shared/ci-data
+    """
+    from app.mcp.http_server import run_http_mcp_server
+
+    resolved = Path(data_dir).expanduser().resolve()
+    click.echo(f"Starting MCP HTTP server on {host}:{port}")
+    click.echo(f"Data directory: {resolved}")
+    click.echo(f"Connect via: http://{host}:{port}/mcp")
+    run_http_mcp_server(host=host, port=port, data_dir=data_dir, log_level=log_level)
+
+
 @cli.command()
 @click.option("--project", "-p", default=None, help="Migrate specific project (default: all discovered)")
 @click.option("--source-dir", "-s", default="./data", type=click.Path(exists=True), help="Local data directory")

@@ -96,6 +96,32 @@ def delete_memory(request: Request, memory_id: str):
     return {"ok": True}
 
 
+@router.get("/projects")
+def list_projects(
+    request: Request,
+    group: str = Query("", description="Group prefix filter (e.g. 'myapp')"),
+):
+    svc = _container(request).indexing_service
+    projects = svc.list_projects(group_prefix=group if group else None)
+    return [
+        {
+            "project_id": p.project_id,
+            "root_path": p.root_path,
+            "registered_at": p.registered_at,
+        }
+        for p in projects
+    ]
+
+
+@router.get("/projects/{project_id}/status")
+def project_status(request: Request, project_id: str):
+    svc = _container(request).indexing_service
+    info = svc.get_project_status(project_id)
+    if not info["has_data"]:
+        raise HTTPException(status_code=404, detail="Project not indexed")
+    return info
+
+
 @router.get("/health")
 def health():
     return {"status": "ok"}

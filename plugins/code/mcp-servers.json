@@ -1,6 +1,6 @@
 {
   "code": {
     "command": "bash",
-    "args": ["start-mcp.sh"]
+    "args": ["${CLAUDE_PLUGIN_ROOT}/start-mcp.sh"]
   }
 }

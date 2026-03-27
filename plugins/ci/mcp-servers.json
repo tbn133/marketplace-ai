@@ -1,7 +1,5 @@
 {
   "ci": {
-    "command": "bash",
-    "args": ["${CLAUDE_PLUGIN_ROOT}/start-mcp.sh"],
-    "cwd": "${CLAUDE_PLUGIN_ROOT}"
+    "url": "http://localhost:8100/mcp"
   }
 }

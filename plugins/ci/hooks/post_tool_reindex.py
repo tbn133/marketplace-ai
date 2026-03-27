@@ -9,11 +9,24 @@ heavy imports.
 """
 
 import json
+import os
 import sys
 from pathlib import Path
 
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
-DATA_DIR = PLUGIN_ROOT / "data"
+
+# Shared data dir: CI_DATA_DIR > ~/.code-intelligence/data > plugin-local data/
+_shared_dir = Path(os.environ.get("CI_DATA_DIR", "")) if os.environ.get("CI_DATA_DIR") else None
+_home_dir = Path.home() / ".code-intelligence" / "data"
+_local_dir = PLUGIN_ROOT / "data"
+
+if _shared_dir and _shared_dir.exists():
+    DATA_DIR = _shared_dir
+elif _home_dir.exists():
+    DATA_DIR = _home_dir
+else:
+    DATA_DIR = _local_dir
+
 REGISTRY_PATH = DATA_DIR / "registry.json"
 
 # Extensions supported by CodeParser (must match languages.py)
@@ -78,6 +91,7 @@ def main() -> None:
 
     # 6. Heavy path: import and re-index (only when we have a match)
     sys.path.insert(0, str(PLUGIN_ROOT))
+    os.environ["DATA_DIR"] = str(DATA_DIR)
 
     try:
         from app.container import create_container

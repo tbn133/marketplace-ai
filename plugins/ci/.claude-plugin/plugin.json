@@ -1,7 +1,7 @@
 {
   "name": "ci",
-  "version": "0.1.0",
-  "description": "AST-based code indexing, call graph analysis, semantic search, and persistent business memory for Python projects.",
+  "version": "0.2.0",
+  "description": "AST-based code indexing, call graph analysis, semantic search, and persistent business memory. Supports multi-repo sharing via central HTTP MCP server.",
   "author": {
     "name": "tbnvn"
   },
@@ -16,6 +16,11 @@
           {
             "type": "command",
             "command": "diff -q \"${CLAUDE_PLUGIN_ROOT}/requirements.txt\" \"${CLAUDE_PLUGIN_DATA}/requirements.txt\" >/dev/null 2>&1 || (python3 -m venv \"${CLAUDE_PLUGIN_DATA}/venv\" && \"${CLAUDE_PLUGIN_DATA}/venv/bin/pip\" install --quiet -r \"${CLAUDE_PLUGIN_ROOT}/requirements.txt\" && cp \"${CLAUDE_PLUGIN_ROOT}/requirements.txt\" \"${CLAUDE_PLUGIN_DATA}/requirements.txt\") || rm -f \"${CLAUDE_PLUGIN_DATA}/requirements.txt\""
+          },
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/start-server.sh\"",
+            "timeout": 15000
           }
         ]
       }

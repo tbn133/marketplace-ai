@@ -10,7 +10,7 @@ from pathlib import Path
 @dataclass(frozen=True)
 class StorageConfig:
     backend: str = "local"  # "local" or "production"
-    data_dir: Path = field(default_factory=lambda: Path(__file__).resolve().parent.parent / "data")
+    data_dir: Path = field(default_factory=lambda: Path.home() / ".code-intelligence" / "data")
 
 
 @dataclass(frozen=True)
@@ -69,7 +69,7 @@ def load_config() -> AppConfig:
     return AppConfig(
         storage=StorageConfig(
             backend=os.getenv("STORAGE_BACKEND", "local"),
-            data_dir=Path(os.getenv("DATA_DIR", str(Path(__file__).resolve().parent.parent / "data"))),
+            data_dir=Path(os.getenv("DATA_DIR", str(Path.home() / ".code-intelligence" / "data"))),
         ),
         neo4j=Neo4jConfig(
             uri=os.getenv("NEO4J_URI", "bolt://localhost:7687"),

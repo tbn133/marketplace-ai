@@ -1,5 +1,5 @@
 {
-  "name": "ci",
+  "name": "code",
   "version": "0.2.0",
   "description": "AST-based code indexing, call graph analysis, semantic search, and persistent business memory. Supports multi-repo sharing via central HTTP MCP server.",
   "author": {

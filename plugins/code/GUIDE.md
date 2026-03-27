@@ -108,7 +108,7 @@ Mỗi module là **git repository riêng** với **`.claude/` config riêng** (C
 
 ```bash
 # Qua skill (trong Claude Code)
-/ci:init /workspace --project myproject -v
+/code:init /workspace --project myproject -v
 
 # Hoặc qua CLI
 python -m cmd.cli index /workspace --project myproject -v
@@ -141,7 +141,7 @@ Tất cả modules chia sẻ chung 1 graph + 1 vector index. Search trả kết 
 
 ```bash
 # Tìm tất cả code liên quan "authentication" trong toàn project
-/ci:search "authentication logic" --project myproject
+/code:search "authentication logic" --project myproject
 ```
 
 Kết quả:
@@ -157,7 +157,7 @@ Search 1 lần, thấy code liên quan từ **tất cả modules** trong cùng d
 ### Bước 3: Call graph liên kết cross-module
 
 ```bash
-/ci:graph "myproject::backend-api/app/auth/handler.py::login_handler" --depth 3
+/code:graph "myproject::backend-api/app/auth/handler.py::login_handler" --depth 3
 ```
 
 ```
@@ -178,19 +178,19 @@ Business rules, incidents, notes áp dụng cho **toàn bộ project**, không b
 
 ```bash
 # Lưu rule áp dụng cho toàn domain
-/ci:remember "Orders > $500 require manager approval" --project myproject
-/ci:remember "All API endpoints must validate JWT" --project myproject
-/ci:remember "Stripe webhook timeout: increase to 30s" --project myproject
+/code:remember "Orders > $500 require manager approval" --project myproject
+/code:remember "All API endpoints must validate JWT" --project myproject
+/code:remember "Stripe webhook timeout: increase to 30s" --project myproject
 
 # Recall tìm across toàn domain
-/ci:recall "approval rules" --project myproject
-/ci:recall "stripe" --project myproject
+/code:recall "approval rules" --project myproject
+/code:recall "stripe" --project myproject
 ```
 
 ### Bước 5: Phân tích toàn diện cross-module
 
 ```bash
-/ci:analyze "how does checkout work" --project myproject
+/code:analyze "how does checkout work" --project myproject
 ```
 
 Analyze tự động kết hợp:
@@ -384,26 +384,26 @@ File bị xóa → tự động remove nodes và vectors khỏi DB.
 
 Khi plugin được cài trong Claude Code, các skill có thể dùng qua slash command:
 
-### `/ci:init` — Index codebase
+### `/code:init` — Index codebase
 
 ```
-/ci:init /workspace --project myproject -v
-/ci:init --project myproject --status
+/code:init /workspace --project myproject -v
+/code:init --project myproject --status
 ```
 
-### `/ci:search` — Tìm kiếm code
+### `/code:search` — Tìm kiếm code
 
 ```
-/ci:search "authentication logic" --project myproject
-/ci:search "payment processing" --project myproject
+/code:search "authentication logic" --project myproject
+/code:search "payment processing" --project myproject
 ```
 
 Tìm kiếm theo ngữ nghĩa, trả về functions ranked by similarity + related callers/callees.
 
-### `/ci:graph` — Phân tích call graph
+### `/code:graph` — Phân tích call graph
 
 ```
-/ci:graph "myproject::backend-api/app/auth/handler.py::login_handler" --depth 3
+/code:graph "myproject::backend-api/app/auth/handler.py::login_handler" --depth 3
 ```
 
 Hiển thị:
@@ -417,10 +417,10 @@ login_handler (backend-api/app/auth/handler.py:42)
     └── test_login (backend-api/tests/test_auth.py:8)
 ```
 
-### `/ci:analyze` — Phân tích toàn diện
+### `/code:analyze` — Phân tích toàn diện
 
 ```
-/ci:analyze "how does checkout work"
+/code:analyze "how does checkout work"
 ```
 
 Kết hợp search + graph + memory để phân tích end-to-end:
@@ -430,20 +430,20 @@ Kết hợp search + graph + memory để phân tích end-to-end:
 4. Đọc source code
 5. Tổng hợp findings
 
-### `/ci:remember` — Lưu business memory
+### `/code:remember` — Lưu business memory
 
 ```
-/ci:remember "Orders > $500 require manager approval" --project myproject
-/ci:remember "Redis timeout fix: increase max_connections to 50" --project myproject
+/code:remember "Orders > $500 require manager approval" --project myproject
+/code:remember "Redis timeout fix: increase max_connections to 50" --project myproject
 ```
 
 Memory types: `business_rule`, `incident`, `note`.
 
-### `/ci:recall` — Tìm kiếm memory
+### `/code:recall` — Tìm kiếm memory
 
 ```
-/ci:recall "approval rules" --project myproject
-/ci:recall --type incident --project myproject
+/code:recall "approval rules" --project myproject
+/code:recall --type incident --project myproject
 ```
 
 ---
@@ -776,7 +776,7 @@ Trong mỗi repo, tạo `.claude/settings.local.json`:
 ```json
 {
   "mcpServers": {
-    "ci": {
+    "code": {
       "url": "http://localhost:8100/mcp"
     }
   }
@@ -789,18 +789,18 @@ Trong mỗi repo, tạo `.claude/settings.local.json`:
 
 ```bash
 # Search 1 repo cụ thể
-/ci:search "authentication logic" --project myapp-backend
+/code:search "authentication logic" --project myapp-backend
 
 # Search TOÀN BỘ repos trong group (dùng wildcard *)
-/ci:search "authentication logic" --project "myapp-*"
+/code:search "authentication logic" --project "myapp-*"
 
 # List tất cả projects trong group
 list_projects(group="myapp")
 # → [myapp-backend, myapp-frontend, myapp-payment]
 
 # Memory cũng hỗ trợ cross-repo
-/ci:remember "JWT must use RS256" --project myapp-backend
-/ci:recall "JWT" --project "myapp-*"    ← tìm từ tất cả repos trong group
+/code:remember "JWT must use RS256" --project myapp-backend
+/code:recall "JWT" --project "myapp-*"    ← tìm từ tất cả repos trong group
 ```
 
 ### Wildcard rules

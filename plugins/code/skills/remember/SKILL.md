@@ -18,7 +18,7 @@ Store persistent business memory that survives across Claude Code sessions. Unli
 
 ## How to use
 
-Use the MCP tool `add_memory` provided by the `ci` server:
+Use the MCP tool `add_memory` provided by the `code` server:
 
 - **project_id** (required): The project identifier
 - **type** (required): One of `business_rule`, `incident`, `note`
@@ -45,5 +45,5 @@ Use the MCP tool `add_memory` provided by the `ci` server:
 ## Notes
 
 - Memories are isolated per project — they won't leak across projects
-- Use `/ci:recall` to search saved memories later
+- Use `/code:recall` to search saved memories later
 - Keep content concise but complete — this is what future sessions will see

@@ -516,20 +516,32 @@ function renderProjects(projects) {
     return;
   }
 
-  // Group by prefix
+  // Group by prefix (projects with '-') — ungrouped projects render directly
   const groups = {};
+  const ungrouped = [];
   projects.forEach(p => {
     const parts = p.project_id.split('-');
-    const group = parts.length > 1 ? parts[0] : '_ungrouped';
-    if (!groups[group]) groups[group] = [];
-    groups[group].push(p);
+    if (parts.length > 1) {
+      const group = parts[0];
+      if (!groups[group]) groups[group] = [];
+      groups[group].push(p);
+    } else {
+      ungrouped.push(p);
+    }
   });
 
   let html = '';
+
+  // Ungrouped projects — render directly without a group header
+  ungrouped.forEach(p => {
+    html += `<div class="project-item" data-project="${esc(p.project_id)}" onclick="selectProject('${esc(p.project_id)}')">
+      ${esc(p.project_id)}
+    </div>`;
+  });
+
   for (const [group, items] of Object.entries(groups).sort()) {
-    const label = group === '_ungrouped' ? 'Other' : group;
     html += `<div class="group-label" onclick="toggleGroup(this)">
-      <span class="arrow">&#9662;</span> ${esc(label)}
+      <span class="arrow">&#9662;</span> ${esc(group)}
       <span style="color:var(--text-muted);font-weight:400;font-size:11px">(${items.length})</span>
     </div>`;
     html += '<div class="group-items">';

@@ -122,7 +122,19 @@
       "Bash(../../.venv/bin/python -c \"\nfrom mcp.server import Server\nfrom mcp.server.streamable_http_manager import StreamableHTTPSessionManager\n\ns = Server\\('test'\\)\nmgr = StreamableHTTPSessionManager\\(app=s, stateless=True\\)\nprint\\('StreamableHTTPSessionManager created OK'\\)\nprint\\('handle_request:', type\\(mgr.handle_request\\)\\)\n\")",
       "Bash(../../.venv/bin/python -c \"\nfrom app.mcp.http_server import create_http_app, run_http_mcp_server\nfrom app.container import create_container\n\nc = create_container\\(\\)\napp = create_http_app\\(c\\)\nprint\\(f'ASGI app type: {type\\(app\\).__name__}'\\)\nprint\\(f'Routes: {[r.path for r in app.routes]}'\\)\nprint\\('All OK!'\\)\n\")",
       "Bash(../../.venv/bin/python -m cmd.cli serve-mcp --help)",
-      "Bash(DATA_DIR=/tmp/ci-test-data ../../.venv/bin/python -m cmd.cli index ./app --project testgroup-ci -v)"
+      "Bash(DATA_DIR=/tmp/ci-test-data ../../.venv/bin/python -m cmd.cli index ./app --project testgroup-ci -v)",
+      "Bash(curl:*)",
+      "Bash(DATA_DIR=~/.code-intelligence/data python -m cmd.cli index /Users/tabi4/Desktop/workspace/projects/mine/ai_tools/code-intelligence-system --project tool)",
+      "Bash(cp /Users/tabi4/Desktop/workspace/projects/mine/ai_tools/code-intelligence-system/plugins/ci/app/config.py /Users/tabi4/.claude/plugins/marketplaces/code-intelligence-system/plugins/ci/app/config.py)",
+      "Bash(cp /Users/tabi4/Desktop/workspace/projects/mine/ai_tools/code-intelligence-system/plugins/ci/static/index.html /Users/tabi4/.claude/plugins/marketplaces/code-intelligence-system/plugins/ci/static/index.html)",
+      "Bash(find /Users/tabi4/Desktop/workspace/projects/mine/ai_tools/code-intelligence-system/plugins/ci/data -name *ci*)",
+      "Bash(grep -r \"ci-self\\\\|ci-code\" /Users/tabi4/Desktop/workspace/projects/mine/ai_tools/code-intelligence-system --include=*.json --include=*.md --include=*.py)",
+      "Bash(grep -rn \"\"ci\"\" /Users/tabi4/Desktop/workspace/projects/mine/ai_tools/code-intelligence-system --include=*.json --include=*.md --exclude-dir=.venv --exclude-dir=data)",
+      "Bash(grep -rn ci: /Users/tabi4/Desktop/workspace/projects/mine/ai_tools/code-intelligence-system --include=*.md --exclude-dir=.venv --exclude-dir=data --exclude-dir=.git)",
+      "Bash(rsync:*)",
+      "Bash(cp /Users/tabi4/Desktop/workspace/projects/mine/ai_tools/code-intelligence-system/.claude-plugin/marketplace.json /Users/tabi4/.claude/plugins/marketplaces/code-intelligence-system/.claude-plugin/marketplace.json)",
+      "Bash(cp /Users/tabi4/Desktop/workspace/projects/mine/ai_tools/code-intelligence-system/CLAUDE.md /Users/tabi4/.claude/plugins/marketplaces/code-intelligence-system/CLAUDE.md)",
+      "Bash(cp /Users/tabi4/Desktop/workspace/projects/mine/ai_tools/code-intelligence-system/README.md /Users/tabi4/.claude/plugins/marketplaces/code-intelligence-system/README.md)"
     ]
   }
 }

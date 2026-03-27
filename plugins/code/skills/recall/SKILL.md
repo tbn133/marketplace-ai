@@ -18,7 +18,7 @@ Search and retrieve persistent business memories saved in previous sessions.
 
 ## How to use
 
-Use the MCP tool `search_memory` provided by the `ci` server:
+Use the MCP tool `search_memory` provided by the `code` server:
 
 - **project_id** (required): The project identifier
 - **query** (optional): Search text to filter memories
@@ -44,7 +44,7 @@ Notes:
 4. If no results, suggest:
    - Broadening the search query
    - Checking if the project has been indexed with the correct project_id
-   - Using `/ci:remember` to save new knowledge
+   - Using `/code:remember` to save new knowledge
 
 ## Notes
 

@@ -226,7 +226,7 @@ def serve_mcp(host: str, port: int, data_dir: str, log_level: str):
     All Claude instances connect to this single server via:
 
     \b
-      { "mcpServers": { "ci": { "url": "http://HOST:PORT/mcp" } } }
+      { "mcpServers": { "code": { "url": "http://HOST:PORT/mcp" } } }
 
     \b
     Index repos first (use same --data-dir):

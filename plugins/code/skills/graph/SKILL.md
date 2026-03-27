@@ -18,7 +18,7 @@ Retrieve and visualize the call graph for a specific function. Shows who calls i
 
 ## How to use
 
-Use the MCP tool `get_call_graph` provided by the `ci` server:
+Use the MCP tool `get_call_graph` provided by the `code` server:
 
 - **project_id** (required): The project identifier
 - **function_id** (required): Function ID in format `{project_id}::{file_path}::{ClassName.}func_name`
@@ -55,5 +55,5 @@ Examples:
 
 ## Notes
 
-- The codebase must be indexed first — suggest `/ci:init` if no data found
+- The codebase must be indexed first — suggest `/code:init` if no data found
 - Deep graphs (depth > 3) may return large results; suggest starting with depth 2

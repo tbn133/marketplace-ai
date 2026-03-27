@@ -11,7 +11,7 @@ Claude Code plugin **marketplace** containing code intelligence tools. The repo 
 ```text
 .claude-plugin/marketplace.json     # Marketplace manifest
 plugins/
-  ci/                               # Plugin: AST indexing + search + memory
+  code/                             # Plugin: AST indexing + search + memory
     .claude-plugin/plugin.json      # Plugin manifest
     app/                            # Source code (hexagonal architecture)
     cmd/cli.py                      # CLI entry point
@@ -20,12 +20,12 @@ plugins/
     requirements.txt
 ```
 
-## Working with the ci plugin
+## Working with the code plugin
 
-All commands must be run from `plugins/ci/`:
+All commands must be run from `plugins/code/`:
 
 ```bash
-cd plugins/ci
+cd plugins/code
 
 # Install dependencies (Python 3.12+)
 pip install -r requirements.txt
@@ -60,13 +60,13 @@ python -m cmd.cli validate-plugin
 claude plugin marketplace add github.com/tabi4/code-intelligence-system
 
 # Install a plugin
-claude plugin install ci@code-intelligence-system --scope project
+claude plugin install code@code-intelligence-system --scope project
 
 # Or install from local path (development)
-claude plugin install ./plugins/ci --scope project
+claude plugin install ./plugins/code --scope project
 ```
 
-## Architecture (ci plugin)
+## Architecture (code plugin)
 
 ### Dual Storage Backend
 
@@ -98,4 +98,4 @@ The `Container` in `app/container.py` is the composition root — it reads `STOR
 
 ## Configuration
 
-All config via environment variables with defaults in `plugins/ci/app/config.py`. Key vars: `STORAGE_BACKEND`, `NEO4J_URI`, `QDRANT_URL`, `POSTGRES_HOST`, `REDIS_URL`, `EMBEDDING_DIM`, `LOG_LEVEL`.
+All config via environment variables with defaults in `plugins/code/app/config.py`. Key vars: `STORAGE_BACKEND`, `NEO4J_URI`, `QDRANT_URL`, `POSTGRES_HOST`, `REDIS_URL`, `EMBEDDING_DIM`, `LOG_LEVEL`.

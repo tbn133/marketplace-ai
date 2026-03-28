@@ -4,20 +4,33 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Claude Code plugin **marketplace** containing code intelligence tools. The repo hosts multiple plugins under `plugins/`. Each plugin is self-contained with its own `.claude-plugin/plugin.json`, source code, skills, and MCP servers.
+Claude Code plugin **marketplace** hosting AI-powered tools. The repo hosts multiple plugins under `plugins/`. Each plugin is self-contained with its own `.claude-plugin/plugin.json`, source code, skills, and optional MCP servers.
 
 ## Repository Structure
 
 ```text
-.claude-plugin/marketplace.json     # Marketplace manifest
+.claude-plugin/marketplace.json       # Marketplace manifest (v0.2.0)
 plugins/
-  code/                             # Plugin: AST indexing + search + memory
-    .claude-plugin/plugin.json      # Plugin manifest
-    app/                            # Source code (hexagonal architecture)
-    cmd/cli.py                      # CLI entry point
-    skills/                         # 6 Claude Code skills
-    mcp-servers.json                # MCP server config
-    requirements.txt
+  code/                               # Plugin: AST indexing + search + memory
+    .claude-plugin/plugin.json
+    app/                              # Source code (hexagonal architecture)
+    cmd/cli.py                        # CLI entry point (Click)
+    skills/                           # 6 skills: init, search, graph, analyze, remember, recall
+    mcp-servers.json                  # MCP server config
+    requirements.txt                  # Python 3.12+
+
+  ai-voice-cover/                     # Plugin: AI voice cover from YouTube
+    .claude-plugin/plugin.json
+    plugin.py                         # Entry point: run(input) -> dict
+    planner.py                        # Style + parameter planning
+    executor.py                       # Pipeline orchestration
+    evaluator.py                      # Rule-based output selection
+    config.py                         # Env-based configuration
+    styles.yaml                       # Style presets
+    steps/                            # 5 pipeline steps
+    skills/                           # 2 skills: cover, download-model
+    setup-venv.sh                     # Python 3.10 venv setup
+    requirements.txt                  # Python 3.10 (rvc-python constraint)
 ```
 
 ## Working with the code plugin
@@ -53,6 +66,38 @@ python -m cmd.cli mcp
 python -m cmd.cli validate-plugin
 ```
 
+## Working with the ai-voice-cover plugin
+
+**Requires Python 3.10** (rvc-python depends on faiss-cpu==1.7.3, only has wheel for 3.10).
+
+All commands must be run from `plugins/ai-voice-cover/`:
+
+```bash
+cd plugins/ai-voice-cover
+
+# Setup Python 3.10 venv (auto-detects python3.10)
+bash setup-venv.sh .
+
+# Generate AI voice cover
+bash run.sh cover --url "https://youtube.com/watch?v=xxx" --voice "model_name" --style auto
+
+# Download voice model from HuggingFace
+bash run.sh download-model --source "https://huggingface.co/user/repo" --name "model_name"
+
+# List downloaded models
+bash run.sh list-models
+
+# List available styles
+bash run.sh list-styles
+
+# Check tool installations
+bash run.sh check-tools
+```
+
+Pipeline: download (yt-dlp) -> separate (audio-separator) -> convert (rvc-python) -> blend (FFmpeg) -> mix (FFmpeg) -> evaluate (ffprobe).
+
+See `plugins/ai-voice-cover/GUIDE.md` for detailed usage.
+
 ## Marketplace Commands
 
 ```bash
@@ -61,9 +106,11 @@ claude plugin marketplace add github.com/tabi4/code-intelligence-system
 
 # Install a plugin
 claude plugin install code@code-intelligence-system --scope project
+claude plugin install ai-voice-cover@code-intelligence-system --scope project
 
 # Or install from local path (development)
 claude plugin install ./plugins/code --scope project
+claude plugin install ./plugins/ai-voice-cover --scope project
 ```
 
 ## Architecture (code plugin)
@@ -86,9 +133,27 @@ The `Container` in `app/container.py` is the composition root — it reads `STOR
 
 ### Key Constraints
 
-- **AST-only parsing**: Never use LLM for code parsing. All extraction is via tree-sitter. Supports Python, TypeScript, JavaScript, Go, Rust, Java, C, C++.
+- **AST-only parsing**: Never use LLM for code parsing. All extraction is via tree-sitter. Supports Python, TypeScript, JavaScript, Go, Rust, Java, C, C++, PHP.
 - **Project isolation**: `project_id` is required on every data operation.
 - **Embedding is a mock**: `HashEmbeddingService` uses deterministic hash-based vectors. Designed to be swapped for a real model (e.g., `bge-small`).
+
+## Architecture (ai-voice-cover plugin)
+
+### Pipeline Pattern
+
+Sequential pipeline with planner -> executor -> evaluator:
+
+- **Planner** (`planner.py`): Rule-based style selection, generates blend ratios.
+- **Executor** (`executor.py`): Orchestrates 5-step pipeline for each blend value.
+- **Evaluator** (`evaluator.py`): Rule-based output selection (no clipping, reasonable loudness, target -14 dBFS).
+- **Steps** (`steps/`): Each step is an independent module — `download`, `separate`, `convert`, `blend`, `mix`, `download_model`.
+
+### Key Constraints
+
+- **Python 3.10 only**: rvc-python pins faiss-cpu==1.7.3 (no wheel for 3.11+). `setup-venv.sh` enforces this.
+- **pip==23.3.2**: omegaconf==2.0.6 (rvc-python dep) uses legacy specifier `>=5.1.*` rejected by pip 24+.
+- **Local processing only**: No cloud APIs. All tools run locally via Python packages.
+- **FFmpeg is system dependency**: Only external tool not installable via pip.
 
 ## Adding a New Plugin
 
@@ -98,4 +163,10 @@ The `Container` in `app/container.py` is the composition root — it reads `STOR
 
 ## Configuration
 
+### code plugin
+
 All config via environment variables with defaults in `plugins/code/app/config.py`. Key vars: `STORAGE_BACKEND`, `NEO4J_URI`, `QDRANT_URL`, `POSTGRES_HOST`, `REDIS_URL`, `EMBEDDING_DIM`, `LOG_LEVEL`.
+
+### ai-voice-cover plugin
+
+All config via environment variables with defaults in `plugins/ai-voice-cover/config.py`. Required: `VOICE_COVER_RVC_MODEL_DIR`. Optional: `VOICE_COVER_RVC_DEVICE`, `VOICE_COVER_RVC_F0_METHOD`, `VOICE_COVER_OUTPUT_DIR`, `VOICE_COVER_KEEP_TEMP`.

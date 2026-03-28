@@ -1,0 +1,38 @@
+styles:
+  vietnamese_soft:
+    blend_ratio: 0.3
+    pitch_shift: -1
+    formant_shift: -0.08
+    description: "Soft Vietnamese vocal style"
+
+  kpop_bright:
+    blend_ratio: 0.25
+    pitch_shift: 0
+    formant_shift: 0.0
+    description: "Bright K-pop vocal style"
+
+  deep_male:
+    blend_ratio: 0.4
+    pitch_shift: -3
+    formant_shift: -0.15
+    description: "Deep male vocal conversion"
+
+  female_high:
+    blend_ratio: 0.35
+    pitch_shift: 4
+    formant_shift: 0.1
+    description: "High female vocal conversion"
+
+  neutral:
+    blend_ratio: 0.3
+    pitch_shift: 0
+    formant_shift: 0.0
+    description: "Neutral conversion, no pitch adjustment"
+
+defaults:
+  blend_values:
+    - 0.2
+    - 0.3
+    - 0.4
+  pitch_shift: 0
+  formant_shift: 0.0

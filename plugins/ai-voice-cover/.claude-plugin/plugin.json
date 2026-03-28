@@ -1,0 +1,23 @@
+{
+  "name": "ai-voice-cover",
+  "version": "0.1.0",
+  "description": "AI voice cover generator — download, separate, convert, blend, and mix audio from YouTube URLs with AI voice models.",
+  "author": {
+    "name": "tbnvn"
+  },
+  "license": "MIT",
+  "keywords": ["voice-cover", "rvc", "audio", "ai-music", "youtube"],
+  "skills": "./skills/",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/setup-venv.sh\" \"${CLAUDE_PLUGIN_DATA}\""
+          }
+        ]
+      }
+    ]
+  }
+}

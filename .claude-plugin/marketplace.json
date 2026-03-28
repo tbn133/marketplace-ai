@@ -4,8 +4,8 @@
     "name": "tabi4"
   },
   "metadata": {
-    "description": "Collection of code intelligence plugins for Claude Code — AST indexing, call graphs, semantic search, persistent memory.",
-    "version": "0.1.0",
+    "description": "Collection of AI-powered plugins for Claude Code — code intelligence, voice cover generation, and more.",
+    "version": "0.2.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [
@@ -15,6 +15,13 @@
       "description": "AST-based code indexing, call graph analysis, semantic search, and persistent business memory for Python projects.",
       "version": "0.1.0",
       "keywords": ["code-intelligence", "ast", "call-graph", "semantic-search", "memory"]
+    },
+    {
+      "name": "ai-voice-cover",
+      "source": "./plugins/ai-voice-cover",
+      "description": "AI voice cover generator — create multiple cover versions from YouTube URLs using RVC voice models, with automatic best-output selection.",
+      "version": "0.1.0",
+      "keywords": ["voice-cover", "rvc", "audio", "ai-music", "youtube"]
     }
   ]
 }

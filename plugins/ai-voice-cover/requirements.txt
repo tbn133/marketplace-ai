@@ -1,0 +1,6 @@
+PyYAML>=6.0
+yt-dlp>=2024.0
+audio-separator>=0.17.0
+onnxruntime>=1.16.0
+rvc-python>=0.1.0
+huggingface_hub>=0.20.0

@@ -2,11 +2,38 @@
 
 from __future__ import annotations
 
+import functools
 from pathlib import Path
 
-from rvc_python.infer import RVCInference
+import torch
 
-from errors import StepError
+# Must patch BEFORE any rvc_python import to avoid MPS/Metal segfault
+# and PyTorch 2.6+ weights_only=True default breaking fairseq model loading.
+torch.backends.mps.is_available = lambda: False
+_orig_torch_load = torch.load
+
+
+@functools.wraps(_orig_torch_load)
+def _safe_torch_load(*args, **kwargs):
+    kwargs.setdefault("weights_only", False)
+    return _orig_torch_load(*args, **kwargs)
+
+
+torch.load = _safe_torch_load
+
+from rvc_python.infer import RVCInference  # noqa: E402
+
+from errors import StepError  # noqa: E402
+
+
+def _detect_rvc_version(model_path: Path) -> str:
+    """Detect RVC model version (v1 or v2) from checkpoint weights."""
+    cpt = _orig_torch_load(str(model_path), map_location="cpu", weights_only=True)
+    weight = cpt.get("weight", {})
+    emb = weight.get("enc_p.emb_phone.weight")
+    if emb is not None and emb.shape[1] == 256:
+        return "v1"
+    return "v2"
 
 
 def convert(
@@ -19,10 +46,7 @@ def convert(
     rvc_device: str = "cpu",
     f0_method: str = "rmvpe",
 ) -> Path:
-    """Convert vocals using RVC voice model.
-
-    Uses rvc-python Python API instead of subprocess.
-    """
+    """Convert vocals using RVC voice model."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Resolve model file — supports:
@@ -50,9 +74,12 @@ def convert(
             f"Voice model '{voice_model}' not found in {rvc_model_dir}",
         )
 
+    version = _detect_rvc_version(model_path)
+
     try:
-        rvc = RVCInference(device=rvc_device)
-        rvc.load_model(str(model_path))
+        rvc = RVCInference(device="cpu")
+        # Skip FAISS index loading — it causes segfault when loaded alongside rmvpe.
+        rvc.load_model(str(model_path), version=version)
         rvc.set_params(
             f0method=f0_method,
             f0up_key=pitch_shift,
@@ -64,5 +91,5 @@ def convert(
     if not output_path.exists():
         raise StepError("convert", ["rvc-python"], 0, f"Output file not created: {output_path}")
 
-    print(f"[convert] {voice_model} (pitch={pitch_shift}, device={rvc_device}) -> {output_path}")
+    print(f"[convert] {voice_model} v{version} (pitch={pitch_shift}) -> {output_path}")
     return output_path

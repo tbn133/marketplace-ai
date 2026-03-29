@@ -1,3 +1,5 @@
 {
-  "enabledPlugins": {}
+  "enabledPlugins": {
+    "ai-voice-cover@code-intelligence-system": true
+  }
 }

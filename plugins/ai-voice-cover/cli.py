@@ -16,11 +16,14 @@ from steps.download_model import download_model, list_models
 
 def cmd_cover(args: argparse.Namespace) -> None:
     """Run the voice cover pipeline."""
-    result = run({
+    input_data = {
         "url": args.url,
         "voice": args.voice,
         "style": args.style,
-    })
+    }
+    if args.output_dir:
+        input_data["output_dir"] = args.output_dir
+    result = run(input_data)
     print(json.dumps(result, indent=2, ensure_ascii=False))
     if "error" in result:
         sys.exit(1)
@@ -111,6 +114,7 @@ def main() -> None:
     p_cover.add_argument("--url", required=True, help="YouTube URL")
     p_cover.add_argument("--voice", required=True, help="RVC voice model name")
     p_cover.add_argument("--style", default="auto", help="Style name or 'auto'")
+    p_cover.add_argument("--output-dir", default=None, help="Output directory for cover files")
     p_cover.set_defaults(func=cmd_cover)
 
     # check-tools

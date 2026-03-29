@@ -26,6 +26,7 @@ def run(input: dict) -> dict:
     url = input.get("url", "")
     voice = input.get("voice", "")
     style = input.get("style", "auto")
+    output_dir = input.get("output_dir")
 
     if not url:
         return {"error": "Missing 'url' in input."}
@@ -34,6 +35,11 @@ def run(input: dict) -> dict:
 
     # Load config and validate
     config = load_config()
+
+    # Override output_dir if provided by user
+    if output_dir:
+        from dataclasses import replace
+        config = replace(config, paths=replace(config.paths, output_dir=Path(output_dir)))
     errors = validate_tools(config)
     if errors:
         return {"error": "Tool validation failed.", "details": errors}

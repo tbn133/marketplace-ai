@@ -108,7 +108,7 @@ Mỗi module là **git repository riêng** với **`.claude/` config riêng** (C
 
 ```bash
 # Qua skill (trong Claude Code)
-/code:init /workspace --project myproject -v
+/code:index /workspace --project myproject -v
 
 # Hoặc qua CLI
 python -m cmd.cli index /workspace --project myproject -v
@@ -384,11 +384,11 @@ File bị xóa → tự động remove nodes và vectors khỏi DB.
 
 Khi plugin được cài trong Claude Code, các skill có thể dùng qua slash command:
 
-### `/code:init` — Index codebase
+### `/code:index` — Index codebase
 
 ```
-/code:init /workspace --project myproject -v
-/code:init --project myproject --status
+/code:index /workspace --project myproject -v
+/code:index --project myproject --status
 ```
 
 ### `/code:search` — Tìm kiếm code

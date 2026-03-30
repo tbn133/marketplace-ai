@@ -1,5 +1,5 @@
 ---
-name: init
+name: index
 description: "Index a codebase using AST parsing (tree-sitter) for Python, TypeScript, JavaScript, Go, Rust, Java, C, C++, PHP. Check indexing status with --status. Use when user wants to index, re-index, check what is indexed, or update the code intelligence database."
 argument-hint: "<path> --project <project_id> [--force] [--status]"
 ---

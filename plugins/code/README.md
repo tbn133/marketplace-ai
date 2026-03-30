@@ -25,7 +25,7 @@ python -m cmd.cli search-memory --project myapp --query "approval"
 
 | Command | Description |
 | --- | --- |
-| `/code:init` | Index a codebase (tree-sitter AST, multi-language) |
+| `/code:index` | Index a codebase (tree-sitter AST, multi-language) |
 | `/code:search` | Semantic code search with graph expansion |
 | `/code:graph` | Call graph analysis for functions |
 | `/code:remember` | Save persistent business memory |

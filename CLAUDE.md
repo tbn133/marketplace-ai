@@ -15,7 +15,7 @@ plugins/
     .claude-plugin/plugin.json
     app/                              # Source code (hexagonal architecture)
     cmd/cli.py                        # CLI entry point (Click)
-    skills/                           # 6 skills: init, search, graph, analyze, remember, recall
+    skills/                           # 6 skills: index, search, graph, analyze, remember, recall
     mcp-servers.json                  # MCP server config
     requirements.txt                  # Python 3.12+
 

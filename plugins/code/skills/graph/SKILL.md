@@ -55,5 +55,5 @@ Examples:
 
 ## Notes
 
-- The codebase must be indexed first — suggest `/code:init` if no data found
+- The codebase must be indexed first — suggest `/code:index` if no data found
 - Deep graphs (depth > 3) may return large results; suggest starting with depth 2

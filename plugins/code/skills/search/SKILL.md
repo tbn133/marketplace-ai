@@ -32,7 +32,7 @@ Use the MCP tool `search_code` provided by the `code` server:
    - List matched functions with file paths and line numbers
    - Highlight the most relevant matches
    - Show related functions (callers/callees) if present
-4. If no results found, suggest the user run `/code:init` first
+4. If no results found, suggest the user run `/code:index` first
 
 ## Output format
 

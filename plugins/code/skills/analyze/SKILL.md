@@ -76,4 +76,4 @@ Present a structured analysis:
 - This skill orchestrates multiple MCP tools — it may take several steps
 - Start broad (search) then narrow (graph + read) for efficiency
 - Always check memory first — past incidents may be critical context
-- If the codebase isn't indexed yet, suggest `/code:init` first
+- If the codebase isn't indexed yet, suggest `/code:index` first

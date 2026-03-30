@@ -58,11 +58,24 @@ class SearchService:
         query_vec = self._embedding.generate(query)
         vector_results = self._vector_store.search(project_id, query_vec, top_k=top_k)
 
-        # Graph expansion
+        # Classify results by type
         functions: list[dict] = []
+        documents: list[dict] = []
         related_set: dict[str, dict] = {}
 
         for vr in vector_results:
+            vr_type = vr.get("type", "function")
+
+            if vr_type == "document":
+                documents.append({
+                    "file": vr.get("file", ""),
+                    "name": vr.get("name", ""),
+                    "content": vr.get("content", ""),
+                    "score": vr.get("score", 0.0),
+                })
+                continue
+
+            # Function: graph expansion
             node_id = vr["node_id"]
             func = self._graph_store.get_function(project_id, node_id)
             if func:
@@ -84,6 +97,7 @@ class SearchService:
 
         result = SearchResult(
             functions=functions,
+            documents=documents,
             related=related,
             query=query,
             project_id=project_id,
@@ -101,11 +115,13 @@ class SearchService:
     ) -> SearchResult:
         """Search across multiple projects and merge results by score."""
         all_functions: list[dict] = []
+        all_documents: list[dict] = []
         all_related: dict[str, dict] = {}
 
         for pid in project_ids:
             result = self._search_single(pid, query, top_k=top_k)
             all_functions.extend(result.functions)
+            all_documents.extend(result.documents)
             for r in result.related:
                 rid = r.get("id")
                 if rid and rid not in all_related:
@@ -115,11 +131,15 @@ class SearchService:
         all_functions.sort(key=lambda f: f.get("score", 0.0), reverse=True)
         functions = all_functions[:top_k]
 
+        all_documents.sort(key=lambda d: d.get("score", 0.0), reverse=True)
+        documents = all_documents[:top_k]
+
         func_ids = {f.get("id") for f in functions}
         related = [r for r in all_related.values() if r.get("id") not in func_ids]
 
         return SearchResult(
             functions=functions,
+            documents=documents,
             related=related,
             query=query,
             project_id=original_id,

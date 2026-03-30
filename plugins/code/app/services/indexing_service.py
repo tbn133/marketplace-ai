@@ -15,6 +15,7 @@ from typing import Callable
 
 from app.domain.models import FileRecord, FunctionNode, ProjectInfo, ProjectRegistry
 from app.domain.ports import EmbeddingPort, GraphStorePort, VectorStorePort
+from app.indexer.doc_chunker import chunk_file, is_supported_doc
 from app.indexer.extractor import extract_symbols
 from app.indexer.graph_builder import build_graph, resolve_calls
 from app.indexer.parser import CodeParser
@@ -103,7 +104,7 @@ class IndexingService:
                         project_id=project_id,
                         node_id=fn.id,
                         embedding=vec,
-                        metadata={"file": rel_path, "name": fn.name, "signature": fn.signature},
+                        metadata={"file": rel_path, "name": fn.name, "signature": fn.signature, "type": "function"},
                     )
 
                 total_functions += len(extraction.functions)
@@ -120,6 +121,52 @@ class IndexingService:
 
         if all_function_nodes:
             resolve_calls(project_id, all_function_nodes, self._graph_store)
+
+        # Index document files (.md, .txt)
+        doc_files = self._discover_docs(root)
+        total_docs = 0
+        for doc_path in doc_files:
+            rel_path = str(doc_path.relative_to(root))
+            try:
+                file_hash = self._compute_hash(doc_path)
+            except OSError as e:
+                error_files.append((rel_path, str(e)))
+                continue
+
+            if not force and self._is_unchanged(project_id, rel_path, file_hash):
+                skipped_files += 1
+                if on_progress:
+                    on_progress("skip", rel_path)
+                continue
+
+            try:
+                self._vector_store.remove_by_file(project_id, rel_path)
+                chunks = chunk_file(doc_path, rel_path)
+                for i, chunk in enumerate(chunks):
+                    node_id = f"{project_id}::doc::{rel_path}::{i}"
+                    text = f"{chunk.name} {chunk.content}"
+                    vec = self._embedding.generate(text)
+                    self._vector_store.add(
+                        project_id=project_id,
+                        node_id=node_id,
+                        embedding=vec,
+                        metadata={
+                            "file": rel_path,
+                            "name": chunk.name,
+                            "type": "document",
+                            "content": chunk.content,
+                        },
+                    )
+                total_docs += len(chunks)
+                indexed_files += 1
+                self._update_hash(project_id, rel_path, file_hash)
+                if on_progress:
+                    on_progress("index", rel_path)
+            except Exception as e:
+                error_files.append((rel_path, str(e)))
+                logger.warning("Failed to index doc %s: %s", rel_path, e)
+                if on_progress:
+                    on_progress("error", rel_path)
 
         self._graph_store.save(project_id)
         self._vector_store.save(project_id)
@@ -156,6 +203,14 @@ class IndexingService:
                 if not any(part in IGNORE_DIRS for part in path.parts):
                     files.append(path)
         return sorted(files)
+
+    def _discover_docs(self, root: Path) -> list[Path]:
+        docs = []
+        for path in root.rglob("*"):
+            if path.is_file() and is_supported_doc(path):
+                if not any(part in IGNORE_DIRS for part in path.parts):
+                    docs.append(path)
+        return sorted(docs)
 
     @staticmethod
     def _compute_hash(file_path: Path) -> str:
@@ -224,6 +279,30 @@ class IndexingService:
                 if self._is_unchanged(project_id, rel_path, file_hash):
                     continue
 
+                # Document files
+                if is_supported_doc(file_path):
+                    self._vector_store.remove_by_file(project_id, rel_path)
+                    chunks = chunk_file(file_path, rel_path)
+                    for i, chunk in enumerate(chunks):
+                        node_id = f"{project_id}::doc::{rel_path}::{i}"
+                        text = f"{chunk.name} {chunk.content}"
+                        vec = self._embedding.generate(text)
+                        self._vector_store.add(
+                            project_id=project_id,
+                            node_id=node_id,
+                            embedding=vec,
+                            metadata={
+                                "file": rel_path,
+                                "name": chunk.name,
+                                "type": "document",
+                                "content": chunk.content,
+                            },
+                        )
+                    indexed_files += 1
+                    self._update_hash(project_id, rel_path, file_hash)
+                    continue
+
+                # Code files
                 self._graph_store.remove_file_nodes(project_id, rel_path)
                 self._vector_store.remove_by_file(project_id, rel_path)
 
@@ -243,7 +322,7 @@ class IndexingService:
                         project_id=project_id,
                         node_id=fn.id,
                         embedding=vec,
-                        metadata={"file": rel_path, "name": fn.name, "signature": fn.signature},
+                        metadata={"file": rel_path, "name": fn.name, "signature": fn.signature, "type": "function"},
                     )
 
                 total_functions += len(extraction.functions)

@@ -78,6 +78,7 @@ class ProjectRegistry:
 @dataclass
 class SearchResult:
     functions: list[dict] = field(default_factory=list)
+    documents: list[dict] = field(default_factory=list)
     related: list[dict] = field(default_factory=list)
     query: str = ""
     project_id: str = ""

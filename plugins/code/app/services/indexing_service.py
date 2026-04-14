@@ -172,6 +172,7 @@ class IndexingService:
         self._vector_store.save(project_id)
         self._save_hashes(project_id)
         self._register_project(project_id, str(root))
+        self._write_code_index_json(root, project_id)
 
         return ProjectInfo(
             project_id=project_id,
@@ -237,6 +238,7 @@ class IndexingService:
         path = self._hashes_path(project_id)
         if path is None:
             return
+        path.parent.mkdir(parents=True, exist_ok=True)
         records = self._file_hashes.get(project_id, {})
         raw = {k: v.__dict__ for k, v in records.items()}
         path.write_text(json.dumps(raw, indent=2))
@@ -384,6 +386,7 @@ class IndexingService:
         path = self._registry_path()
         if path is None:
             return
+        path.parent.mkdir(parents=True, exist_ok=True)
         raw = {k: v.__dict__ for k, v in self._registry.items()}
         path.write_text(json.dumps(raw, indent=2))
 
@@ -393,6 +396,19 @@ class IndexingService:
             root_path=root_path,
         )
         self._save_registry()
+
+    def _write_code_index_json(self, root: Path, project_id: str) -> None:
+        """Write .claude/code-index.json in the target project directory."""
+        claude_dir = root / ".claude"
+        try:
+            claude_dir.mkdir(parents=True, exist_ok=True)
+            code_index_path = claude_dir / "code-index.json"
+            data = {"project_id": project_id, "path": str(root)}
+            tmp_path = code_index_path.with_suffix(".json.tmp")
+            tmp_path.write_text(json.dumps(data, indent=2))
+            tmp_path.rename(code_index_path)
+        except OSError as e:
+            logger.warning("Failed to write code-index.json in %s: %s", root, e)
 
     def get_project_root(self, project_id: str) -> Path | None:
         """Get the registered root path for a project."""

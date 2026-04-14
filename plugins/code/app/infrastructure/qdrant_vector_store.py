@@ -55,6 +55,24 @@ class QdrantVectorStore:
             ],
         )
 
+    def add_batch(self, project_id: str, node_ids: list[str], embeddings: np.ndarray, metadata_list: list[dict]) -> None:
+        if len(node_ids) == 0:
+            return
+        self._ensure_collection(project_id)
+        points = []
+        for i, node_id in enumerate(node_ids):
+            point_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, node_id))
+            payload = {"node_id": node_id, **(metadata_list[i] if i < len(metadata_list) else {})}
+            points.append(PointStruct(
+                id=point_id,
+                vector=embeddings[i].tolist(),
+                payload=payload,
+            ))
+        self._client.upsert(
+            collection_name=self._collection_name(project_id),
+            points=points,
+        )
+
     def search(self, project_id: str, query_embedding: np.ndarray, top_k: int = 10) -> list[dict]:
         self._ensure_collection(project_id)
         response = self._client.query_points(

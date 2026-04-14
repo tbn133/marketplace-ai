@@ -38,9 +38,19 @@ class FaissVectorStore:
 
     def save(self, project_id: str) -> None:
         idx = self._get_index(project_id)
-        faiss.write_index(idx, str(self._index_path(project_id)))
-        with open(self._meta_path(project_id), "w") as f:
-            json.dump(self._metadata[project_id], f)
+        index_path = self._index_path(project_id)
+        meta_path = self._meta_path(project_id)
+
+        # Atomic write for FAISS index
+        tmp_index = index_path.with_suffix(".index.tmp")
+        faiss.write_index(idx, str(tmp_index))
+        tmp_index.rename(index_path)
+
+        # Atomic write for meta JSON (prevents 0-byte files on crash/large writes)
+        tmp_meta = meta_path.with_suffix(".json.tmp")
+        content = json.dumps(self._metadata[project_id])
+        tmp_meta.write_text(content)
+        tmp_meta.rename(meta_path)
 
     def add(self, project_id: str, node_id: str, embedding: np.ndarray, metadata: dict | None = None) -> None:
         idx = self._get_index(project_id)

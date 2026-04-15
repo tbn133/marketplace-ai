@@ -27,6 +27,9 @@ watchdog>=4.0.0
 networkx>=3.2
 faiss-cpu>=1.7.4
 
+# Document conversion
+markitdown>=0.1.0
+
 # Production storage (optional — install when STORAGE_BACKEND=production)
 neo4j>=5.0.0
 qdrant-client>=1.8.0

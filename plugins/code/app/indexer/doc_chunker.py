@@ -1,20 +1,38 @@
-"""Document chunker — splits .md and .txt files into sections for vector indexing.
+"""Document chunker — splits documents into sections for vector indexing.
 
-Markdown: split by headings (h1–h6), each section becomes a chunk with its title.
-Plain text: split by blank lines, merge short paragraphs up to ~500 chars.
+Supports:
+- Markdown (.md): split by headings (h1-h6)
+- Plain text (.txt): split by blank lines, merge short paragraphs
+- Rich documents (.docx, .xlsx, .pdf, .pptx, .html, .csv, .json, .xml):
+  converted to markdown via markitdown CLI, then chunked as markdown.
+
 Max ~1000 chars per chunk.
 """
 
 from __future__ import annotations
 
+import logging
 import re
+import shutil
+import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 MAX_CHUNK_CHARS = 1000
 TXT_MERGE_TARGET = 500
 
+# Native text-based formats (read directly)
 SUPPORTED_DOC_EXTENSIONS = {".md", ".txt"}
+
+# Rich formats converted via markitdown
+RICH_DOC_EXTENSIONS = {
+    ".docx", ".xlsx", ".pdf", ".pptx",
+    ".html", ".htm", ".csv", ".json", ".xml",
+}
+
+ALL_DOC_EXTENSIONS = SUPPORTED_DOC_EXTENSIONS | RICH_DOC_EXTENSIONS
 
 _HEADING_RE = re.compile(r"^(#{1,6})\s+(.*)", re.MULTILINE)
 
@@ -27,20 +45,59 @@ class DocChunk:
 
 
 def is_supported_doc(file_path: str | Path) -> bool:
-    return Path(file_path).suffix.lower() in SUPPORTED_DOC_EXTENSIONS
+    return Path(file_path).suffix.lower() in ALL_DOC_EXTENSIONS
 
 
 def chunk_file(file_path: Path, rel_path: str) -> list[DocChunk]:
     suffix = file_path.suffix.lower()
-    text = file_path.read_text(encoding="utf-8", errors="replace")
-    if not text.strip():
-        return []
 
     if suffix == ".md":
+        text = file_path.read_text(encoding="utf-8", errors="replace")
+        if not text.strip():
+            return []
         return _chunk_markdown(text, rel_path)
+
     if suffix == ".txt":
+        text = file_path.read_text(encoding="utf-8", errors="replace")
+        if not text.strip():
+            return []
         return _chunk_text(text, rel_path)
+
+    if suffix in RICH_DOC_EXTENSIONS:
+        return _chunk_rich_doc(file_path, rel_path)
+
     return []
+
+
+def _chunk_rich_doc(file_path: Path, rel_path: str) -> list[DocChunk]:
+    """Convert rich document to markdown via markitdown, then chunk."""
+    markitdown_bin = shutil.which("markitdown")
+    if markitdown_bin is None:
+        logger.warning("markitdown not installed, skipping %s", rel_path)
+        return []
+
+    try:
+        result = subprocess.run(
+            [markitdown_bin, str(file_path)],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        if result.returncode != 0:
+            logger.warning("markitdown failed for %s: %s", rel_path, result.stderr[:200])
+            return []
+
+        md_text = result.stdout
+        if not md_text.strip():
+            return []
+
+        return _chunk_markdown(md_text, rel_path)
+    except subprocess.TimeoutExpired:
+        logger.warning("markitdown timed out for %s", rel_path)
+        return []
+    except Exception as e:
+        logger.warning("markitdown error for %s: %s", rel_path, e)
+        return []
 
 
 def _chunk_markdown(text: str, rel_path: str) -> list[DocChunk]:
@@ -49,7 +106,6 @@ def _chunk_markdown(text: str, rel_path: str) -> list[DocChunk]:
     last_title = Path(rel_path).stem
 
     for match in _HEADING_RE.finditer(text):
-        # Flush previous section
         before = text[last_pos:match.start()].strip()
         if before:
             sections.append((last_title, before))
@@ -57,7 +113,6 @@ def _chunk_markdown(text: str, rel_path: str) -> list[DocChunk]:
         last_title = match.group(2).strip()
         last_pos = match.end()
 
-    # Flush remaining
     remaining = text[last_pos:].strip()
     if remaining:
         sections.append((last_title, remaining))
@@ -107,10 +162,8 @@ def _split_long(text: str) -> list[str]:
             pieces.append(text)
             break
 
-        # Try to split at last newline within limit
         cut = text.rfind("\n", 0, MAX_CHUNK_CHARS)
         if cut <= 0:
-            # Fall back to space
             cut = text.rfind(" ", 0, MAX_CHUNK_CHARS)
         if cut <= 0:
             cut = MAX_CHUNK_CHARS

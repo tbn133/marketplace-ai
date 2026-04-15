@@ -19,12 +19,17 @@ from pathlib import Path
 SERVER_PORT = os.environ.get("CI_SERVER_PORT", "8100")
 SERVER_URL = f"http://localhost:{SERVER_PORT}"
 
-# Extensions supported by CodeParser (must match languages.py)
+# Extensions supported by CodeParser + doc_chunker
 SUPPORTED_EXTENSIONS = {
+    # Code (must match languages.py)
     ".py", ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs",
     ".go", ".rs", ".java",
     ".c", ".h", ".cpp", ".cc", ".cxx", ".hpp", ".hxx",
     ".php",
+    # Documents (must match doc_chunker.py)
+    ".md", ".txt",
+    ".docx", ".xlsx", ".pdf", ".pptx",
+    ".html", ".htm", ".csv", ".json", ".xml",
 }
 
 

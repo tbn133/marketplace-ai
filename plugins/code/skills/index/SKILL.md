@@ -34,7 +34,10 @@ Supports: Python, TypeScript, JavaScript, Go, Rust, Java, C, C++, PHP.
 
 ## Notes
 
-- Supported: `.py`, `.ts`, `.tsx`, `.js`, `.jsx`, `.go`, `.rs`, `.java`, `.c`, `.h`, `.cpp`, `.cc`, `.php`
+- Supported code: `.py`, `.ts`, `.tsx`, `.js`, `.jsx`, `.go`, `.rs`, `.java`, `.c`, `.h`, `.cpp`, `.cc`, `.php`
+- Supported documents: `.md`, `.txt`, `.docx`, `.xlsx`, `.pdf`, `.pptx`, `.html`, `.csv`, `.json`, `.xml`
+- Document conversion uses `markitdown` (auto-installed) — converts rich documents to markdown for chunking
 - Incremental indexing: unchanged files (by SHA-256) are skipped unless `--force` is used
 - Data is stored in the shared data directory (`~/.code-intelligence/data/`)
+- After indexing, a `.claude/code-index.json` marker file is written to the target project directory
 - For multi-repo projects, use the naming convention `{group}-{reponame}` so repos in the same group can search across each other with wildcard `{group}-*`

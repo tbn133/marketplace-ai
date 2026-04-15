@@ -27,7 +27,7 @@ def mock_vector_store():
 def mock_embedding():
     emb = MagicMock()
     emb.generate.return_value = np.zeros(8, dtype=np.float32)
-    emb.generate_batch.return_value = np.zeros((1, 8), dtype=np.float32)
+    emb.generate_batch.side_effect = lambda texts: np.zeros((len(texts), 8), dtype=np.float32)
     return emb
 
 
@@ -71,3 +71,31 @@ class TestCodeIndexJson:
 
         data = json.loads((claude_dir / "code-index.json").read_text())
         assert data["project_id"] == "new-my_project"
+
+
+class TestParallelIndexing:
+    def test_index_multiple_files_produces_correct_count(self, service, tmp_path):
+        """Indexing a directory with multiple files returns correct totals."""
+        project_dir = tmp_path / "multi"
+        project_dir.mkdir()
+        for i in range(5):
+            (project_dir / f"mod{i}.py").write_text(f"def func{i}(): pass\ndef func{i}b(): pass\n")
+
+        info = service.index_directory(project_dir, project_id="test-multi")
+
+        assert info.total_files == 5
+        assert info.total_functions == 10
+
+    def test_index_skips_unchanged_files(self, service, tmp_path):
+        """Second indexing run skips files that haven't changed."""
+        project_dir = tmp_path / "incr"
+        project_dir.mkdir()
+        (project_dir / "a.py").write_text("def a(): pass")
+        (project_dir / "b.py").write_text("def b(): pass")
+
+        info1 = service.index_directory(project_dir, project_id="test-incr")
+        assert info1.total_files == 2
+
+        info2 = service.index_directory(project_dir, project_id="test-incr")
+        assert info2.total_files == 0
+        assert info2.skipped_files == 2

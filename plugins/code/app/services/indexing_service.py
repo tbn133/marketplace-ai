@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
@@ -67,9 +68,10 @@ class IndexingService:
         error_files: list[tuple[str, str]] = []
         all_function_nodes: list[FunctionNode] = []
 
+        # Phase 1: Filter changed files and compute hashes
+        files_to_index: list[tuple[Path, str, str]] = []  # (path, rel_path, hash)
         for file_path in files:
             rel_path = str(file_path.relative_to(root))
-
             try:
                 file_hash = self._compute_hash(file_path)
             except OSError as e:
@@ -84,28 +86,52 @@ class IndexingService:
                     on_progress("skip", rel_path)
                 continue
 
+            files_to_index.append((file_path, rel_path, file_hash))
+
+        # Phase 2: Parse files in parallel
+        def _parse_one(file_path: Path):
+            return self._parser.parse_file(file_path)
+
+        parse_results: dict[str, tuple] = {}
+        with ThreadPoolExecutor() as pool:
+            future_to_rel = {
+                pool.submit(_parse_one, fp): (fp, rel, fh)
+                for fp, rel, fh in files_to_index
+            }
+            for future in as_completed(future_to_rel):
+                fp, rel, fh = future_to_rel[future]
+                try:
+                    result = future.result()
+                    if result is not None:
+                        parse_results[rel] = (fp, rel, fh, result)
+                except Exception as e:
+                    error_files.append((rel, str(e)))
+                    logger.warning("Failed to parse %s: %s", rel, e)
+                    if on_progress:
+                        on_progress("error", rel)
+
+        # Phase 3: Build graph + collect embeddings (sequential — graph_store not thread-safe)
+        batch_node_ids: list[str] = []
+        batch_texts: list[str] = []
+        batch_metas: list[dict] = []
+
+        for rel in sorted(parse_results.keys()):
+            fp, rel_path, file_hash, (tree, source, language, rules) = parse_results[rel]
             try:
                 self._graph_store.remove_file_nodes(project_id, rel_path)
                 self._vector_store.remove_by_file(project_id, rel_path)
-
-                result = self._parser.parse_file(file_path)
-                if result is None:
-                    continue
-                tree, source, language, rules = result
 
                 extraction = extract_symbols(tree, source, rules)
                 func_nodes = build_graph(project_id, rel_path, extraction, self._graph_store)
                 all_function_nodes.extend(func_nodes)
 
                 for fn in func_nodes:
-                    text = f"{fn.name} {fn.signature} {fn.file}"
-                    vec = self._embedding.generate(text)
-                    self._vector_store.add(
-                        project_id=project_id,
-                        node_id=fn.id,
-                        embedding=vec,
-                        metadata={"file": rel_path, "name": fn.name, "signature": fn.signature, "type": "function"},
-                    )
+                    batch_node_ids.append(fn.id)
+                    batch_texts.append(f"{fn.name} {fn.signature} {fn.file}")
+                    batch_metas.append({
+                        "file": rel_path, "name": fn.name,
+                        "signature": fn.signature, "type": "function",
+                    })
 
                 total_functions += len(extraction.functions)
                 total_classes += len(extraction.classes)
@@ -119,12 +145,21 @@ class IndexingService:
                 if on_progress:
                     on_progress("error", rel_path)
 
+        # Phase 4: Batch embed + batch add to vector store
+        if batch_texts:
+            embeddings = self._embedding.generate_batch(batch_texts)
+            self._vector_store.add_batch(project_id, batch_node_ids, embeddings, batch_metas)
+
         if all_function_nodes:
             resolve_calls(project_id, all_function_nodes, self._graph_store)
 
-        # Index document files (.md, .txt)
+        # Phase 5: Index document files
         doc_files = self._discover_docs(root)
         total_docs = 0
+        doc_batch_ids: list[str] = []
+        doc_batch_texts: list[str] = []
+        doc_batch_metas: list[dict] = []
+
         for doc_path in doc_files:
             rel_path = str(doc_path.relative_to(root))
             try:
@@ -144,19 +179,12 @@ class IndexingService:
                 chunks = chunk_file(doc_path, rel_path)
                 for i, chunk in enumerate(chunks):
                     node_id = f"{project_id}::doc::{rel_path}::{i}"
-                    text = f"{chunk.name} {chunk.content}"
-                    vec = self._embedding.generate(text)
-                    self._vector_store.add(
-                        project_id=project_id,
-                        node_id=node_id,
-                        embedding=vec,
-                        metadata={
-                            "file": rel_path,
-                            "name": chunk.name,
-                            "type": "document",
-                            "content": chunk.content,
-                        },
-                    )
+                    doc_batch_ids.append(node_id)
+                    doc_batch_texts.append(f"{chunk.name} {chunk.content}")
+                    doc_batch_metas.append({
+                        "file": rel_path, "name": chunk.name,
+                        "type": "document", "content": chunk.content,
+                    })
                 total_docs += len(chunks)
                 indexed_files += 1
                 self._update_hash(project_id, rel_path, file_hash)
@@ -168,6 +196,11 @@ class IndexingService:
                 if on_progress:
                     on_progress("error", rel_path)
 
+        if doc_batch_texts:
+            doc_embeddings = self._embedding.generate_batch(doc_batch_texts)
+            self._vector_store.add_batch(project_id, doc_batch_ids, doc_embeddings, doc_batch_metas)
+
+        # Phase 6: Persist
         self._graph_store.save(project_id)
         self._vector_store.save(project_id)
         self._save_hashes(project_id)
